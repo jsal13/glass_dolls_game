@@ -18,14 +18,13 @@ sample_screen = (
 )
 
 
-def render_screen(term: Terminal, screens: tuple[Widget, ...]):
+def render_screen(term: Terminal, screens: tuple[Widget, ...]) -> None:
     refresh(term=TERM)
     for screen in screens:
         screen.display()
 
 
-def main(term=TERM, text=TEXT) -> None:
-
+def main(term: Terminal = TERM, text: GameText = TEXT) -> None:
     render_screen(term=TERM, screens=introduction_screen)
     wait_for_enter(term=TERM)
 
