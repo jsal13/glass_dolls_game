@@ -11,9 +11,12 @@ docs-build:
 
 venv: 
   python -m venv .venv
+  # Use uv package to pip install.
+  # Ref: https://github.com/astral-sh/uv?tab=readme-ov-file#highlights
   source .venv/bin/activate \
-    && pip install -r requirements.txt \
-    && pip install -r requirements-dev.txt
+    && pip install uv \
+    && uv pip install -r requirements.txt \
+    && uv pip install -r requirements-dev.txt
 
 test:
-  pytest --doctest-modules
+  python -m pytest --doctest-modules ./tests

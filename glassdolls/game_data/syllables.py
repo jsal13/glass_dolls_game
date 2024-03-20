@@ -15,6 +15,7 @@ def create_random_syllables(
     vowel_first_num: int = 25,
     nonvowel_first_num: int = 50,
     nonvowel_vowel_nonvowel_num: int = 10,
+    vowel_nonvowel_vowel_num: int = 10,
 ) -> SyllableList:
 
     # Vowel first.
@@ -31,14 +32,18 @@ def create_random_syllables(
     nvn_nonvowels_0 = np.random.choice(
         NONVOWELS, nonvowel_vowel_nonvowel_num, replace=True
     )
-    nvn_nonvowels = np.random.choice(VOWELS, nonvowel_vowel_nonvowel_num, replace=True)
+    nvn_vowels = np.random.choice(VOWELS, nonvowel_vowel_nonvowel_num, replace=True)
     nvn_nonvowels_1 = np.random.choice(
         NONVOWELS, nonvowel_vowel_nonvowel_num, replace=True
     )
-    nvn_list = [
-        "".join(i) for i in zip(nvn_nonvowels_0, nvn_nonvowels, nvn_nonvowels_1)
-    ]
+    nvn_list = ["".join(i) for i in zip(nvn_nonvowels_0, nvn_vowels, nvn_nonvowels_1)]
+
+    # Vowel, Nonvowel, Vowel.
+    vnv_vowels_0 = np.random.choice(VOWELS, vowel_nonvowel_vowel_num, replace=True)
+    vnv_nonvowels = np.random.choice(NONVOWELS, vowel_nonvowel_vowel_num, replace=True)
+    vnv_vowels_1 = np.random.choice(VOWELS, vowel_nonvowel_vowel_num, replace=True)
+    vnv_list = ["".join(i) for i in zip(vnv_vowels_0, vnv_nonvowels, vnv_vowels_1)]
 
     # TODO: This gets approximate value...need to while loop it or something.
 
-    return list(set(vf_list + nvf_list + nvn_list))
+    return list(set(vf_list + nvf_list + nvn_list + vnv_list))

@@ -62,6 +62,7 @@ dependencies = [
     "lxml~=5.1",
     "blessed~=1.20",
     "attrs~=23.2",
+    "fastapi~=0.110",
 ]
 
 # List additional groups of dependencies here (e.g. development

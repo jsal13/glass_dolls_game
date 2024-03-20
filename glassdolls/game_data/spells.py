@@ -2,7 +2,10 @@ import json
 import numpy as np
 from typing import TypeAlias
 
-from glassdolls.game_data.syllables import SyllableList
+try:
+    from glassdolls.game_data.syllables import SyllableList, create_random_syllables
+except:
+    from syllables import SyllableList, create_random_syllables
 
 with open("data/spell_list.json", "r", encoding="utf-8") as f:
     SPELL_LIST = json.load(f)
@@ -17,10 +20,13 @@ def make_spells(
     max_words_per_spell: int = 3,
 ) -> SpellChantList:
 
+    SPELL_LEVEL = "0"
     # Make a list of syllables to use from the
     # "all syllables" list.
     syllables_to_use = np.random.choice(
-        syllables_list, size=(max_words_per_spell * len(spell_list)), replace=False
+        syllables_list,
+        size=(max_words_per_spell * len(spell_list[SPELL_LEVEL])),
+        replace=False,
     ).tolist()
 
     # Don't use a syllable more than once by popping.
@@ -33,5 +39,8 @@ def make_spells(
                 )
             ]
         )
-        for spell in spell_list
+        for spell in spell_list[SPELL_LEVEL]
     }
+
+
+print(make_spells(spell_list=SPELL_LIST, syllables_list=create_random_syllables()))
