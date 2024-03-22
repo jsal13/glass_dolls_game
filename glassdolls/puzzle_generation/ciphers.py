@@ -6,9 +6,14 @@ import numpy as np
 TranslationTable: TypeAlias = dict[int, str]
 
 
-def _create_random_translation_table() -> TranslationTable:
+def substitution_cipher(
+    text: str, seed: int | None = None
+) -> tuple[str, TranslationTable]:
+    """Use a substition cipher in ``text`` according to a random letter mapping."""
+    if isinstance(seed, int):
+        np.random.seed(seed=seed)
 
-    return str.maketrans(
+    trans_table: TranslationTable = str.maketrans(
         dict(
             zip(
                 list(string.ascii_uppercase),
@@ -17,20 +22,11 @@ def _create_random_translation_table() -> TranslationTable:
         )
     )
 
-
-def scramble_letters(
-    text: str, seed: int | None = None
-) -> tuple[str, TranslationTable]:
-    """Scramble letters in ``text`` according to a random letter mapping."""
-    if isinstance(seed, int):
-        np.random.seed(seed=seed)
-
-    ttable = _create_random_translation_table()
-    return (text.translate(ttable), ttable)
+    return (text.translate(trans_table), trans_table)
 
 
 DATA_SAMPLE = """I SPENT THE FOLLOWING DAY ROAMING THROUGH THE VALLEY. I STOOD BESIDE THE SOURCES OF THE ARVEIRON, WHICH TAKE THEIR RISE IN A GLACIER, THAT WITH SLOW PACE IS ADVANCING DOWN FROM THE SUMMIT OF THE HILLS TO BARRICADE THE VALLEY. THE ABRUPT SIDES OF VAST MOUNTAINS WERE BEFORE ME; THE ICY WALL OF THE GLACIER OVERHUNG ME; A FEW SHATTERED PINES WERE SCATTERED AROUND; AND THE SOLEMN SILENCE OF THIS GLORIOUS PRESENCE-CHAMBER OF IMPERIAL NATURE WAS BROKEN ONLY BY THE BRAWLING WAVES OR THE FALL OF SOME VAST FRAGMENT, THE THUNDER SOUND OF THE AVALANCHE OR THE CRACKING, REVERBERATED ALONG THE MOUNTAINS, OF THE ACCUMULATED ICE, WHICH, THROUGH THE SILENT WORKING OF IMMUTABLE LAWS, WAS EVER AND ANON RENT AND TORN, AS IF IT HAD BEEN BUT A PLAYTHING IN THEIR HANDS. THESE SUBLIME AND MAGNIFICENT SCENES AFFORDED ME THE GREATEST CONSOLATION THAT I WAS CAPABLE OF RECEIVING. THEY ELEVATED ME FROM ALL LITTLENESS OF FEELING, AND ALTHOUGH THEY DID NOT REMOVE MY GRIEF, THEY SUBDUED AND TRANQUILLISED IT. IN SOME DEGREE, ALSO, THEY DIVERTED MY MIND FROM THE THOUGHTS OVER WHICH IT HAD BROODED FOR THE LAST MONTH. I RETIRED TO REST AT NIGHT; MY SLUMBERS, AS IT WERE, WAITED ON AND MINISTERED TO BY THE ASSEMBLANCE OF GRAND SHAPES WHICH I HAD CONTEMPLATED DURING THE DAY. THEY CONGREGATED ROUND ME; THE UNSTAINED SNOWY MOUNTAIN-TOP, THE GLITTERING PINNACLE, THE PINE WOODS, AND RAGGED BARE RAVINE, THE EAGLE, SOARING AMIDST THE CLOUDS—THEY ALL GATHERED ROUND ME AND BADE ME BE AT PEACE.
 
 FIREBALL: UM ULT VOS"""
 
-print(scramble_letters(DATA_SAMPLE, seed=10))
+print(substitution_cipher(DATA_SAMPLE, seed=10))
