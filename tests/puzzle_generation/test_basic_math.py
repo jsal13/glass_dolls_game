@@ -1,10 +1,10 @@
-from typing import Generator, Any
 import pytest
-import numpy as np
 
 from glassdolls.puzzle_generation.basic_math import (
     add_n_numbers,
     generate_composite_int,
+    generate_large_prime,
+    generate_boss_prime,
 )
 
 
@@ -32,3 +32,14 @@ def test_generate_small_composite_int(
     expected_value, expected_factors = test_prime_factors_and_product
     assert value == expected_value
     assert factors == expected_factors
+
+
+def test_generate_large_prime() -> None:
+    assert generate_large_prime() == 1837038795022647998
+
+
+def test_generate_boss_prime() -> None:
+    assert (
+        generate_boss_prime()
+        == 35419113627142506726261798347189877810183564435847809778757962002559750401967623860117896672946762526596452619719319240677785600
+    )

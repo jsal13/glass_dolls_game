@@ -2,6 +2,7 @@ import numpy as np
 
 
 PRIMES = np.fromfile("data/primes.csv", dtype=int, sep=" ")
+BOSS_PRIME_NUMBER = 7 + 1  # Seven levels, plus an additional prime.
 
 
 def add_n_numbers(n: int) -> tuple[list[int], int]:
@@ -41,4 +42,31 @@ def generate_composite_int(use_primes_less_than: int = 100) -> tuple[int, list[i
     return (np.prod(primes), primes.tolist())
 
 
-print(generate_composite_int())
+def generate_large_prime() -> int:
+    """
+    Generates a "large" prime for use in crypto.
+
+    Returns:
+        int: The large prime number.
+    """
+
+    product = 0
+    while product <= 0:
+        num_primes_to_multiply = np.random.randint(2, 10)
+        primes = np.random.choice(PRIMES, size=num_primes_to_multiply)
+        product = int(np.prod(primes))
+
+    return product + 1
+
+
+def generate_boss_prime(num_primes: int = BOSS_PRIME_NUMBER) -> int:
+    """Generate a very, very large prime from other large primes."""
+    boss_prime = 1
+    for _ in range(num_primes):
+        large_prime = generate_large_prime()
+        boss_prime *= large_prime
+    return boss_prime
+
+
+np.random.seed(1234)
+print(generate_boss_prime())
