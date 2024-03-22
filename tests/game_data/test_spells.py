@@ -43,7 +43,6 @@ def spell_list() -> dict[str, list[str]]:
 def test_generate_spells_outputs_correctly(
     syllable_list: list[str], spell_list: dict[str, list[str]]
 ) -> None:
-    np.random.seed(1234)
     spells = generate_spells(
         syllables_list=syllable_list,
         spell_list=spell_list,

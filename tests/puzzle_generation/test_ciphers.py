@@ -6,8 +6,6 @@ from glassdolls.puzzle_generation.ciphers import (
     TranslationTable,
 )
 
-SEED = 1234
-
 
 @pytest.fixture()
 def text_with_spell() -> str:
@@ -58,6 +56,6 @@ def test_substitution_cipher(
     expected_text_with_spell_ciphertext: str,
     expected_text_with_spell_trans_table: TranslationTable,
 ) -> None:
-    ciphertext, trans_table = substitution_cipher(text=text_with_spell, seed=SEED)
+    ciphertext, trans_table = substitution_cipher(text=text_with_spell)
     assert ciphertext == expected_text_with_spell_ciphertext
     assert trans_table == expected_text_with_spell_trans_table

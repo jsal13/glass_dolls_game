@@ -63,6 +63,9 @@ dependencies = [
     "blessed~=1.20",
     "attrs~=23.2",
     "fastapi~=0.110",
+    "pandas~=2.2",
+    "sqlalchemy~=2.0",
+    "pyarrow~=15.0",
 ]
 
 # List additional groups of dependencies here (e.g. development
