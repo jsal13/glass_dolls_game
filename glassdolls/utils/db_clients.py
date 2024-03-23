@@ -1,4 +1,5 @@
 from typing import Any, Sequence
+from abc import ABC, abstractmethod
 
 from pymongo import MongoClient
 from pymongo.cursor import Cursor
@@ -10,7 +11,20 @@ from glassdolls.constants import MONGO_CONNECTION_STRING, PG_CONNECTION_STRING
 # TODO: localhost for outside of docker, db-mongo for inside.
 
 
-class MongoDB:
+class DBClient(ABC):
+    """Base Helper Client for DBs."""
+
+    @abstractmethod
+    def _connect(self, *args: Any, **kwargs: Any) -> Any: ...
+
+    @abstractmethod
+    def insert_values(self, *args: Any, **kwargs: Any) -> None: ...
+
+    @abstractmethod
+    def query(self, *args: Any, **kwargs: Any) -> Any: ...
+
+
+class MongoDB(DBClient):
     """Helper Client for MongoDB."""
 
     def __init__(self, db: str = "glassdolls") -> None:
@@ -26,7 +40,7 @@ class MongoDB:
         return self.client[collection].find(query)
 
 
-class PostgresDB:
+class PostgresDB(DBClient):
     """Helper Client for Postgres."""
 
     def __init__(self, db: str = "glassdolls") -> None:
@@ -54,24 +68,3 @@ class PostgresDB:
 
         with self.connection.cursor() as cur:
             return cur.execute(query=query).fetchall()
-
-
-if __name__ == "__main__":
-    pass
-    # MONGO EXAMPLE THINGS:
-    # mdb = MongoDB()
-    # a = [{"butt": "poop", "pee": ["1, 2, 4"], "powder": 23}]
-    # mdb.insert_values(collection="phrases", values=a)
-    # query = {"butt": "poop", "powder": {"$gt": 23}}
-    # print([i for i in mdb.query(collection="phrases", query=query)])
-
-    # PG EXAMPLE THINGS:
-    # table = "spells"
-    # cols = ("spell", "syllables")
-    # values = ["Fireball", "UM OH NO"]
-    # pg = PostgresDB(db="glassdolls")
-    # pg.insert_values(table=table, cols=cols, values=values)
-    #
-    # pg = PostgresDB(db="glassdolls")
-    # spells = pg.query("SELECT * FROM spells;")
-    # print(spells)

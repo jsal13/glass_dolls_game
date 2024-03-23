@@ -44,8 +44,21 @@ def spell_list() -> dict[str, list[str]]:
     return {"0": ["Fire", "Ice", "Wind", "Water", "Earth"]}
 
 
+@pytest.fixture()
+def spell_chant_list() -> SpellChantList:
+    return {
+        "Fire": "RQ KJ",
+        "Ice": "UV ML",
+        "Wind": "Y R",
+        "Water": "ABC KL",
+        "Earth": "MNO U",
+    }
+
+
 def test_generate_spells_outputs_correctly(
-    syllable_list: list[str], spell_list: dict[str, list[str]]
+    syllable_list: list[str],
+    spell_list: dict[str, list[str]],
+    spell_chant_list: SpellChantList,
 ) -> None:
     spells = generate_spells(
         syllables_list=syllable_list,
@@ -54,15 +67,7 @@ def test_generate_spells_outputs_correctly(
         max_words_per_spell=3,
     )
 
-    expected: SpellChantList = {
-        "Fire": "RQ KJ",
-        "Ice": "UV ML",
-        "Wind": "Y R",
-        "Water": "ABC KL",
-        "Earth": "MNO U",
-    }
-
-    assert spells == expected
+    assert spells == spell_chant_list
 
 
 # def test_generate_spells_does_min_max_correctly(

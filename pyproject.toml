@@ -54,21 +54,21 @@ classifiers = [
 ]
 
 dependencies = [
-    "beautifulsoup4~=4.12",
-    "faker~=24.1",
-    "ipykernel~=6.29",
-    "numpy~=1.26",
-    "polars~=0.20",
-    "lxml~=5.1",
-    "blessed~=1.20",
     "attrs~=23.2",
+    "beautifulsoup4~=4.12",
+    "blessed~=1.20",
+    "faker~=24.1",
     "fastapi~=0.110",
+    "ipykernel~=6.29",
+    "lxml~=5.1",
+    "numpy~=1.26",
     "pandas~=2.2",
-    "sqlalchemy~=2.0",
+    "polars~=0.20",
+    "psycopg[binary]~=3.1",
     "pyarrow~=15.0",
     "pymongo[srv]~=4.6",
-    "psycopg[binary]~=3.1",
     "python-dotenv~=1.0",
+    "sqlalchemy~=2.0",
 
 ]
 
@@ -83,17 +83,18 @@ dependencies = [
 # https://packaging.python.org/en/latest/specifications/dependency-specifiers/#extras
 [project.optional-dependencies]
 dev = [
-    "mkdocs~=1.5",
+    "coverage~=7.4",
     "mkdocs-autorefs~=1.0",
     "mkdocs-material~=9.5",
-    "mkdocstrings~=0.24",
+    "mkdocs~=1.5",
     "mkdocstrings-python~=1.8",
+    "mkdocstrings~=0.24",
     "mypy~=1.9",
     "pandas-stubs~=2.2",
     "psycopg[binary]~=3.1",
+    "pytest-mock~=3.14",
     "pytest~=8.1",
     "ruff~=0.3",
-    "coverage~=7.4",
 ]
 
 # # List URLs that are relevant to your project
@@ -132,6 +133,9 @@ packages = ["glassdolls"]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
+
+[tool.pytest]
+mock_use_standalone_module = true
 
 [tool.ruff]
 # https://github.com/astral-sh/ruff
@@ -288,3 +292,6 @@ ignore_missing_imports = false
 [[tool.mypy.overrides]]
 module = ["sklearn.*"]
 ignore_missing_imports = true
+
+[tool.coverage.run]
+omit = ["*/.venv/*", "*/__pycache__/*"]
