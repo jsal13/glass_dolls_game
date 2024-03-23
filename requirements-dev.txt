@@ -8,3 +8,4 @@ pandas-stubs~=2.2
 pytest~=8.1
 ruff~=0.3
 attrs~=23.2
+coverage~=7.4

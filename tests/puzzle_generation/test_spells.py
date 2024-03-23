@@ -1,7 +1,11 @@
 import pytest
 import numpy as np
 
-from glassdolls.puzzle_generation.spells import generate_spells, SpellChantList
+from glassdolls.puzzle_generation.spells import (
+    generate_spells,
+    SpellChantList,
+    generate_random_syllables,
+)
 
 
 @pytest.fixture()
@@ -76,3 +80,26 @@ def test_generate_spells_outputs_correctly(
 # for spell, chant in spells.items():
 #     print(chant.split(" "))
 #     assert min_words <= len(chant.split(" ")) <= max_words
+
+
+def test_generate_random_syllables_outputs_correctly() -> None:
+    syllables = generate_random_syllables(
+        vowel_first_num=2,
+        nonvowel_first_num=3,
+        nonvowel_vowel_nonvowel_num=1,
+        vowel_nonvowel_vowel_num=1,
+    )
+    assert sorted(syllables) == sorted(
+        ["CLU", "DJU", "ISZA", "OCR", "RWIKH", "SHO", "YV"]
+    )
+
+
+def test_generate_random_syllables_fails_with_too_few_syllables() -> None:
+
+    with pytest.raises(ValueError):
+        syllables = generate_random_syllables(
+            vowel_first_num=10000,
+            nonvowel_first_num=1,
+            nonvowel_vowel_nonvowel_num=1,
+            vowel_nonvowel_vowel_num=1,
+        )

@@ -68,7 +68,7 @@ def generate_random_syllables(
     nvn_list = _generate_n_syllables(
         arrs=[NONVOWELS, VOWELS, NONVOWELS], n=nonvowel_vowel_nonvowel_num
     )
-    return vn_list + nv_list + nvn_list + vnv_list
+    return sorted(vn_list + nv_list + nvn_list + vnv_list)
 
 
 def generate_spells(

@@ -93,6 +93,7 @@ dev = [
     "psycopg[binary]~=3.1",
     "pytest~=8.1",
     "ruff~=0.3",
+    "coverage~=7.4",
 ]
 
 # # List URLs that are relevant to your project

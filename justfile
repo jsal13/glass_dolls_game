@@ -24,4 +24,5 @@ activate:
   source .venv/bin/activate
 
 test:
-  python -m pytest --doctest-modules ./tests
+  coverage run -m pytest --doctest-modules tests/
+  coverage report && coverage html
