@@ -10,7 +10,6 @@ DATA_RANDOM_PHRASE_EN_XML: str = os.getenv(
     "DATA_RANDOM_PHRASE_EN_XML", "data/random_phrases_en.xml"
 )
 
-
 MONGO_CONNECTION_STRING: str = os.getenv(
     "MONGO_CONNECTION_STRING", "mongodb://admin:example@localhost:27017"
 )

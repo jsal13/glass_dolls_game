@@ -3,7 +3,7 @@ from typing import TypeAlias
 
 import numpy as np
 
-from glassdolls.puzzle_generation import DATA_SPELLS_FILE_LOC, DATA_SYLLABLE_FILE_LOC
+from glassdolls.constants import DATA_SPELLS_FILE_LOC, DATA_SYLLABLE_FILE_LOC
 
 with (
     open(DATA_SYLLABLE_FILE_LOC, "r", encoding="utf-8") as syllable_json,
