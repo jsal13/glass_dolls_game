@@ -66,6 +66,7 @@ dependencies = [
     "pandas~=2.2",
     "sqlalchemy~=2.0",
     "pyarrow~=15.0",
+    "pymongo[srv]~=4.6",
 ]
 
 # List additional groups of dependencies here (e.g. development

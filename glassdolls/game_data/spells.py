@@ -98,9 +98,3 @@ def generate_spells(
         )
         for spell in spell_list[SPELL_LEVEL]
     }
-
-
-rand = generate_spells(
-    syllables_list=generate_random_syllables(), spell_list=SPELL_LIST
-)
-print(rand)

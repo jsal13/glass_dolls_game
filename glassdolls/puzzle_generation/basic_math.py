@@ -66,7 +66,3 @@ def generate_boss_prime(num_primes: int = BOSS_PRIME_NUMBER) -> int:
         large_prime = generate_large_prime()
         boss_prime *= large_prime
     return boss_prime
-
-
-np.random.seed(1234)
-print(generate_boss_prime())
