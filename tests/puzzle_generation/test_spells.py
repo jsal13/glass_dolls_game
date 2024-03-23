@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 
-from glassdolls.game_data.spells import generate_spells, SpellChantList
+from glassdolls.puzzle_generation.spells import generate_spells, SpellChantList
 
 
 @pytest.fixture()

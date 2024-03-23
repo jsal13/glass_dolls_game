@@ -1,7 +1,9 @@
 import numpy as np
 
+from glassdolls.constants import DATA_PRIMES_FILE_LOC
 
-PRIMES = np.fromfile("data/primes.csv", dtype=int, sep=" ")
+
+PRIMES = np.fromfile(DATA_PRIMES_FILE_LOC, dtype=int, sep=" ")
 BOSS_PRIME_NUMBER = 7 + 1  # Seven levels, plus an additional prime.
 
 

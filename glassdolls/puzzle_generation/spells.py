@@ -3,10 +3,11 @@ from typing import TypeAlias
 
 import numpy as np
 
+from glassdolls.puzzle_generation import DATA_SPELLS_FILE_LOC, DATA_SYLLABLE_FILE_LOC
 
 with (
-    open("data/syllables.json", "r", encoding="utf-8") as syllable_json,
-    open("data/spells.json", "r", encoding="utf-8") as spell_json,
+    open(DATA_SYLLABLE_FILE_LOC, "r", encoding="utf-8") as syllable_json,
+    open(DATA_SPELLS_FILE_LOC, "r", encoding="utf-8") as spell_json,
 ):
     syllables = json.load(syllable_json)
     VOWELS = syllables["vowels"]
