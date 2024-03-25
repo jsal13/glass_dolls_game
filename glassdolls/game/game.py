@@ -6,7 +6,9 @@ from glassdolls.game.components import (
     GameText,
     InputWidget,
     HorizontalRule,
+    MapRenderWidget,
 )
+from glassdolls.game.map import GAME_AREAS
 
 TERM = Terminal()
 TEXT = GameText()
@@ -23,6 +25,10 @@ sample_screen = (
     InputWidget(term=TERM, prompt=TEXT["continue"]),
 )
 
+dungeon_0_level_0_screen = (
+    MapRenderWidget(term=TERM, area=GAME_AREAS.dungeons["Start"], map_key="0"),
+)
+
 
 def render_screen(term: Terminal, screens: tuple[Widget, ...]) -> None:
     refresh(term=TERM)
@@ -35,6 +41,9 @@ def main(term: Terminal = TERM, text: GameText = TEXT) -> None:
     wait_for_enter(term=TERM)
 
     render_screen(term=TERM, screens=sample_screen)
+    wait_for_enter(term=TERM)
+
+    render_screen(term=TERM, screens=dungeon_0_level_0_screen)
     wait_for_enter(term=TERM)
 
 

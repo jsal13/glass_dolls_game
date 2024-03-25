@@ -4,6 +4,7 @@ from attrs import define, field
 from blessed import Terminal
 
 from glassdolls.constants import DATA_GAME_DIALOGUE
+from glassdolls.game.map import GAME_AREAS, Area
 
 
 @define
@@ -27,6 +28,19 @@ class DescriptionWidget(Widget):
         for para in self.summary:
             print("\n".join(self.term.wrap(para)))
             print()
+
+
+@define
+class MapRenderWidget(Widget):
+    term: Terminal
+    area: Area
+    map_key: str
+
+    def display(self) -> None:
+        print(
+            self.term.white("\n".join(self.area.maps[self.map_key]["revealed"])),
+            end="\n\n",
+        )
 
 
 @define

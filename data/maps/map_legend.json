@@ -1,0 +1,17 @@
+{
+    "dungeon": {
+        "unexplored": "░",
+        "puzzle": "∮",
+        "chest": "$",
+        "enemy": "ξ",
+        "person": "β",
+        "wall": "█",
+        "player": "@",
+        "stairs_down": "↘",
+        "stairs_up": "↗",
+        "nothing": " "
+    },
+    "cute_symbols_unused": [
+        "⌂"
+    ]
+}
