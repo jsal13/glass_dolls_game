@@ -1,3 +1,4 @@
+import random
 from glassdolls.utils.db_clients import MongoDB, PostgresDB
 from glassdolls.puzzle_generation import basic_math, ciphers, phrases, spells
 
@@ -21,19 +22,35 @@ class Initializer:
     def populate_phrases_table(self, phrase_list: list[str]) -> None:
         payload = []
         for phrase in phrase_list:
+            # Casaer Cipher
+            cesaer_shift_amount = random.randint(1, 25)
+            cesaer_ciphertext = ciphers.cesaer_cipher(
+                text=phrase, shift_amount=cesaer_shift_amount
+            )
+
             # Substitution Cipher
-            ciphertext, translation_table = ciphers.substitution_cipher(text=phrase)
+            substitution_ciphertext, substitution_translation_table = (
+                ciphers.substitution_cipher(text=phrase)
+            )
 
             # Mongo requires string keys, normal transtables are
             # of the form {65: "Z", ...} for chr(65) = "A", etc.
-            translation_table_str_keys = ciphers.translation_table_make_str_keys(
-                translation_table=translation_table
+            substition_translation_table_str_keys = (
+                ciphers.translation_table_make_str_keys(
+                    translation_table=substitution_translation_table
+                )
             )
             payload.append(
                 {
                     "phrase": phrase,
-                    "substitution_ciphertext": ciphertext,
-                    "substitution_translation_table": translation_table_str_keys,
+                    "substitution": {
+                        "ciphertext": substitution_ciphertext,
+                        "translation_table": substition_translation_table_str_keys,
+                    },
+                    "cesaer": {
+                        "ciphertext": cesaer_ciphertext,
+                        "shift_amount": cesaer_shift_amount,
+                    },
                 }
             )
 

@@ -16,7 +16,7 @@ def cesaer_cipher(text: str, shift_amount: int = 1) -> str:
         shift_amount (int, optional): Number to shift the alphabet by. Defaults to 1.
 
     Returns:
-        str: (ciphertext)
+        tuple[str, int]: (ciphertext, shift_amount)
     """
     translation_table = str.maketrans(
         string.ascii_uppercase,
