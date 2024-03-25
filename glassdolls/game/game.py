@@ -1,6 +1,12 @@
 from blessed import Terminal
-from utils import refresh, wait_for_enter
-from components import DescriptionWidget, Widget, GameText, InputWidget, HorizontalRule
+from glassdolls.game.utils import refresh, wait_for_enter
+from glassdolls.game.components import (
+    DescriptionWidget,
+    Widget,
+    GameText,
+    InputWidget,
+    HorizontalRule,
+)
 
 TERM = Terminal()
 TEXT = GameText()

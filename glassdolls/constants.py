@@ -26,3 +26,5 @@ DIFFICULTY_RANK = {
         "large prime factors": "Medium",
     },
 }
+
+DATA_GAME_DIALOGUE: str = os.getenv("DATA_GAME_DIALOGUE", "data/game_text.json")

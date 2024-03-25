@@ -1,8 +1,9 @@
 import json
 
 from attrs import define, field
-
 from blessed import Terminal
+
+from glassdolls.constants import DATA_GAME_DIALOGUE
 
 
 @define
@@ -48,7 +49,7 @@ class HorizontalRule(Widget):
 
 
 class GameText:
-    def __init__(self, game_text_path: str = "./game_text.json"):
+    def __init__(self, game_text_path: str = DATA_GAME_DIALOGUE):
         with open(game_text_path, "r", encoding="utf-8") as f:
             self.text = json.load(f)
 
