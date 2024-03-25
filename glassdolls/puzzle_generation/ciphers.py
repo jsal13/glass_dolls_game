@@ -7,6 +7,25 @@ TranslationTable: TypeAlias = dict[int, str]
 TranslationTableStrKey: TypeAlias = dict[str, str]
 
 
+def cesaer_cipher(text: str, shift_amount: int = 1) -> str:
+    """
+    Creates Cesaer ciphertext from ``text``, letters shifted by ``shift_amount``.
+
+    Args:
+        text (str): Plaintext to be encoded.
+        shift_amount (int, optional): Number to shift the alphabet by. Defaults to 1.
+
+    Returns:
+        str: (ciphertext)
+    """
+    translation_table = str.maketrans(
+        string.ascii_uppercase,
+        string.ascii_uppercase[shift_amount:] + string.ascii_uppercase[:shift_amount],
+    )
+
+    return text.upper().translate(translation_table)
+
+
 def substitution_cipher(text: str) -> tuple[str, TranslationTable]:
     """Use a substition cipher in ``text`` according to a random letter mapping."""
 

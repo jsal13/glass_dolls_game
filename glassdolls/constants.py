@@ -16,3 +16,13 @@ MONGO_CONNECTION_STRING: str = os.getenv(
 PG_CONNECTION_STRING: str = os.getenv(
     "PG_CONNECTION_STRING", "postgresql://admin:example@localhost:5432"
 )
+
+DIFFICULTY_RANK = {
+    "ciphers": {"substitution": "Medium", "cesaer": "Easy"},
+    "math": {
+        "sums": "Easy",
+        "products": "Easy",
+        "small prime factors": "Easy",
+        "large prime factors": "Medium",
+    },
+}
