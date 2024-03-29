@@ -22,8 +22,17 @@ class DescriptionWidget(Widget):
         print(self.term.cyan(self.title))
         print(self.term.cyan("-" * dash_width), end="\n\n")
         for para in self.summary:
-            print("\n".join(self.term.wrap(para)))
-            print()
+            print("\n".join(self.term.wrap(para)), end="\n\n")
+
+
+@define
+class OptionsWidget(Widget):
+    options: list[str] = field(default=["Summary goes here."])
+
+    def display(self) -> None:
+        for para in self.options:
+            print("\n".join(self.term.wrap(para)), end="\n")
+        print()
 
 
 @define
