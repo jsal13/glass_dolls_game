@@ -1,45 +1,13 @@
 from typing import Sequence, Any
 
+from attrs import define, field
 from blinker import signal, Signal
-
 from blessed import Terminal
 from blessed.keyboard import Keystroke
 
-from glassdolls.utils import Loc
+from glassdolls import logger
+from glassdolls.utils import Loc, send_signal
 from glassdolls.constants import MAPS_DUNGEON_LEVEL_0_TXT, DATA_GAME_DIALOGUE
-
-
-#     # def render_and_wait_for_key(
-#     #     self,
-#     #     screens: Sequence["glassdolls.game.components.Widget"],
-#     #     user_key: str | None = None,
-#     # ) -> Keystroke:
-#     #     """
-#     #     Render and wait for user key.
-
-#     #     Helper method combining ``.render`` and ``.wait_for_key``.
-#     #     """
-#     #     self.render(screens=screens)
-#     #     return self.wait_for_key(user_key=user_key)
-
-#     def wait_for_key(self, user_key: str | None = None) -> Keystroke:
-#         """
-#         Wait for user_input with value ``key``.
-
-#         Notes
-#         -----
-#         See: https://blessed.readthedocs.io/en/latest/keyboard.html#keycodes
-
-#         Args:
-#             user_key (str | None, optional): Keycode for desired user key.  None will take any key. Defaults to None.
-#         """
-#         with self.term.cbreak():
-#             while True:
-#                 val = self.term.inkey()
-#                 if val.is_sequence and ((user_key is None) or (val.name == user_key)):
-#                     break
-#         return val
-
 
 HORIZ_PADDING = 2
 VERT_PADDING = 1
@@ -56,9 +24,9 @@ ASCII_CODES = {
 }
 
 
+@define
 class Display:
-    def __init__(self, term: Terminal):
-        self.term = term
+    term: Terminal
 
     def print_at(self, x: int, y: int, text: str, color: str = "white") -> None:
         color_text: str
@@ -69,33 +37,67 @@ class Display:
             color_text = self.term.cyan(text)
         elif color == "navy":
             color_text = self.term.navy(text)
+        elif color == "green":
+            color_text = self.term.green(text)
         else:
             raise ValueError(f"No such color {color} implemented.")
 
         print(self.term.move_xy(x=x, y=y) + color_text, end="")
 
 
+@define
 class MapDisplay(Display):
-    def __init__(self, term: Terminal, map_ascii: list[str]) -> None:
-        self.term = term
-        self.map_ascii = map_ascii
+    term: Terminal
+    map_ascii: list[list[str]] = field(repr=False)
+    _player_loc: Loc = field(default=Loc(2, 2))
+    x_start: int = field(default=TERMINAL_XY_INIT_MAP.x)
+    y_start: int = field(default=TERMINAL_XY_INIT_MAP.y)
+
+    # Signals
+    signal_player_loc_updated: Signal = field(init=False, repr=False)
+
+    def __attrs_post_init__(self) -> None:
+        self.signal_player_loc_updated = signal(f"{self.__repr__()}_player_loc_updated")
+
+    @property
+    def player_loc(self) -> Loc:
+        return self._player_loc
+
+    @player_loc.setter
+    def player_loc(self, value: Loc) -> None:
+        self._player_loc = value
+        send_signal(self.signal_player_loc_updated, data={"loc": self.player_loc})
 
     def display(self) -> None:
-        x, y = TERMINAL_XY_INIT_MAP.astuple()
         for jdx, row in enumerate(self.map_ascii):
-            self.print_at(x=x, y=y + jdx, text=row)
+            self.print_at(x=self.x_start, y=self.y_start + jdx, text="".join(row))
+
+        self.display_user(x=self.player_loc.x, y=self.player_loc.y)
         print()
 
+    def display_user(self, x: int, y: int) -> None:
+        self.print_at(x=self.x_start + x, y=self.y_start + y, text="@", color="green")
 
+
+@define
 class OptionsDisplay(Display):
+    term: Terminal
+    _options: list[str] = field(default=USER_INPUT_OPTIONS, repr=False)
 
-    def __init__(
-        self,
-        term: Terminal,
-        options: list[str] = USER_INPUT_OPTIONS,
-    ) -> None:
-        self.term = term
-        self.options = options
+    # Signals
+    signal_options_updated: Signal = field(init=False, repr=False)
+
+    def __attrs_post_init__(self) -> None:
+        self.signal_options_updated = signal(f"{self.__repr__()}_options_updated")
+
+    @property
+    def options(self) -> list[str]:
+        return self._options
+
+    @options.setter
+    def options(self, value: list[str]) -> None:
+        self._options = value
+        send_signal(self.signal_options_updated)
 
     def display(
         self,
@@ -111,17 +113,19 @@ class OptionsDisplay(Display):
             print()
 
 
+@define
 class DescriptionDisplay(Display):
-    def __init__(
-        self, term: Terminal, title: str | None = None, text: str | None = None
-    ) -> None:
-        self.term = term
-        self._title = title
-        self._text = text
+    term: Terminal
+    _title: str | None = field(default=None)
+    _text: str | None = field(default=None, repr=False)
 
-        # Signals
-        self.signal_title_updated = signal("signal_title_updated")
-        self.signal_text_updated = signal("signal_text_updated")
+    # Signals
+    signal_title_updated: Signal = field(init=False, repr=False)
+    signal_text_updated: Signal = field(init=False, repr=False)
+
+    def __attrs_post_init__(self) -> None:
+        self.signal_title_updated = signal(f"{self.__repr__()}_title_updated")
+        self.signal_text_updated = signal(f"{self.__repr__()}_text_updated")
 
     @property
     def title(self) -> str | None:
@@ -130,7 +134,7 @@ class DescriptionDisplay(Display):
     @title.setter
     def title(self, value: str | None) -> None:
         self._title = value
-        self.signal_title_updated.send("signal_title_updated")
+        send_signal(self.signal_title_updated)
 
     @property
     def text(self) -> str | None:
@@ -139,7 +143,7 @@ class DescriptionDisplay(Display):
     @text.setter
     def text(self, value: str | None) -> None:
         self._text = value
-        self.signal_text_updated.send("signal_text_updated")
+        send_signal(self.signal_text_updated)
 
     def display(self, x: int, y: int) -> None:
         if self.title is not None:
@@ -149,9 +153,9 @@ class DescriptionDisplay(Display):
             )
 
         if self.text is not None:
-            self.text_list = self.text.split("\n")
+            text_list = self.text.split("\n")
             y_offset = 2 if self.title is not None else 0
-            for line in self.text_list:
+            for line in text_list:
                 line_wrap_list = self.term.wrap(line, width=80)
 
                 # If the line wraps, keep the text padded.
@@ -173,6 +177,7 @@ class DescriptionDisplay(Display):
                 y_offset += len(line_wrap_list) + 2
 
 
+@define
 class LineDisplay(Display):
 
     def vertical(self, x: int, y_min: int, y_max: int) -> None:
@@ -189,29 +194,53 @@ class LineDisplay(Display):
         )
 
 
+@define
 class UI:
-    def __init__(
-        self,
-        term: Terminal,
-        map_disp: MapDisplay,
-        opt_disp: OptionsDisplay,
-        line_disp: LineDisplay,
-        descr_disp: DescriptionDisplay,
-    ) -> None:
-        self.term = term
-        self.map = map_disp
-        self.opt = opt_disp
-        self.line = line_disp
-        self.descr = descr_disp
+    term: Terminal = field(repr=False)
+    area_map: MapDisplay = field(repr=False)
+    options: OptionsDisplay = field(repr=False)
+    line: LineDisplay = field(repr=False)
+    description: DescriptionDisplay = field(repr=False)
 
-        # Connect signals to subscriber.
-        self.descr.signal_title_updated.connect(self.refresh_display)
-        self.descr.signal_text_updated.connect(self.refresh_display)
+    # Signals.
+    signal_user_input: Signal = field(init=False, repr=False)
+
+    def __attrs_post_init__(self) -> None:
+        self.signal_user_input = signal(f"{self.__repr__()}_user_input")
+
+        # Subscribe to Signals.
+        self.description.signal_title_updated.connect(self.refresh_display)
+        self.description.signal_text_updated.connect(self.refresh_display)
+        self.area_map.signal_player_loc_updated.connect(self.refresh_display)
+
+    def wait_for_key(self, user_key: str | None = None) -> Keystroke:
+        """
+        Wait for user_input with value ``key``.
+
+        Notes
+        -----
+        See: https://blessed.readthedocs.io/en/latest/keyboard.html#keycodes
+
+        Args:
+            user_key (str | None, optional): Keycode for desired user key.  None will take any key. Defaults to None.
+        """
+        with self.term.cbreak():
+            while True:
+                val = self.term.inkey()
+                if val.is_sequence and ((user_key is None) or (val.name == user_key)):
+                    send_signal(self.signal_user_input, data={"key": val.name})
+                    break
+        return val
 
     def _refresh_screen(self) -> None:
         print(f"{self.term.home}{self.term.clear}")
 
-    def refresh_display(self, sender: Signal | None = None) -> None:
+    def refresh_display(
+        self, sender: Signal | None = None, data: dict[str, Any] | None = None
+    ) -> None:
+        if sender is not None:
+            logger.debug(f"UI.refresh_display got signal: {sender} with data: {data}")
+
         self._refresh_screen()
         self.line.vertical(
             x=TERMINAL_XY_INIT_MAP.x + MAP_WIDTH + HORIZ_PADDING,
@@ -227,13 +256,13 @@ class UI:
             x=TERMINAL_XY_INIT_MAP.x + MAP_WIDTH + HORIZ_PADDING,
             y=TERMINAL_XY_INIT_MAP.y + MAP_HEIGHT + VERT_PADDING,
         )
-        self.map.display()
+        self.area_map.display()
 
-        self.opt.display(
+        self.options.display(
             x=(TERMINAL_XY_INIT_MAP.x + MAP_WIDTH + HORIZ_PADDING + 1 + HORIZ_PADDING),
             y=VERT_PADDING,
         )
-        self.descr.display(
+        self.description.display(
             x=TERMINAL_XY_INIT_MAP.x,
             y=TERMINAL_XY_INIT_MAP.y + MAP_HEIGHT + (2 * VERT_PADDING + 1),
         )
@@ -241,7 +270,7 @@ class UI:
 
 if __name__ == "__main__":
     with open(MAPS_DUNGEON_LEVEL_0_TXT, "r") as f:
-        dungeon_map = list(f.readlines())
+        dungeon_map = list(list(line) for line in f.readlines())
 
     with open(DATA_GAME_DIALOGUE, "r") as g:
         import json
@@ -251,26 +280,33 @@ if __name__ == "__main__":
     TERM = Terminal()
 
     # Initialize this stuff.
-    map_disp = MapDisplay(term=TERM, map_ascii=dungeon_map)
-    descr_disp = DescriptionDisplay(
+    area_map = MapDisplay(term=TERM, map_ascii=dungeon_map)
+    description = DescriptionDisplay(
         term=TERM, title="Hello!", text=game_text["introduction_0"]
     )
-    opt_disp = OptionsDisplay(term=TERM, options=USER_INPUT_OPTIONS)
-    line_disp = LineDisplay(term=TERM)
+    options = OptionsDisplay(term=TERM, options=USER_INPUT_OPTIONS)
+    line = LineDisplay(term=TERM)
 
     ui = UI(
         term=TERM,
-        map_disp=map_disp,
-        opt_disp=opt_disp,
-        line_disp=line_disp,
-        descr_disp=descr_disp,
+        area_map=area_map,
+        description=description,
+        line=line,
+        options=options,
     )
 
     ui.refresh_display()
 
     import time
 
-    time.sleep(2)
-    ui.descr.text = "WHATS UP BAYBEES."
-    time.sleep(2)
-    ui.descr.text = "WHATS UP RABIESSS."
+    time.sleep(1)
+    ui.area_map.player_loc += Loc(1, 0)
+
+    time.sleep(1)
+    ui.area_map.player_loc += Loc(1, 0)
+
+    time.sleep(1)
+    ui.area_map.player_loc += Loc(1, 0)
+
+    time.sleep(1)
+    ui.area_map.player_loc += Loc(1, 0)
