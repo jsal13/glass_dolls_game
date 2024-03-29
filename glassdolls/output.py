@@ -1,7 +1,7 @@
 from typing import Sequence, Any
 
 from attrs import define, field
-from blinker import signal, Signal
+from blinker import signal, NamedSignal
 from blessed import Terminal
 from blessed.keyboard import Keystroke
 
@@ -23,6 +23,13 @@ ASCII_CODES = {
     "Up_Left_Right_Crossing": "╩",
 }
 
+USER_MOVEMENT = {
+    "KEY_LEFT": Loc(-1, 0),
+    "KEY_RIGHT": Loc(1, 0),
+    "KEY_DOWN": Loc(0, 1),
+    "KEY_UP": Loc(0, -1),
+}
+
 
 @define
 class Display:
@@ -35,8 +42,8 @@ class Display:
             color_text = self.term.white(text)
         elif color == "cyan":
             color_text = self.term.cyan(text)
-        elif color == "navy":
-            color_text = self.term.navy(text)
+        elif color == "pink":
+            color_text = self.term.pink(text)
         elif color == "green":
             color_text = self.term.green(text)
         else:
@@ -50,14 +57,16 @@ class MapDisplay(Display):
     term: Terminal
     map_ascii: list[list[str]] = field(repr=False)
     _player_loc: Loc = field(default=Loc(2, 2))
-    x_start: int = field(default=TERMINAL_XY_INIT_MAP.x)
-    y_start: int = field(default=TERMINAL_XY_INIT_MAP.y)
+    x_start: int = field(default=TERMINAL_XY_INIT_MAP.x, repr=False)
+    y_start: int = field(default=TERMINAL_XY_INIT_MAP.y, repr=False)
 
     # Signals
-    signal_player_loc_updated: Signal = field(init=False, repr=False)
+    signal_player_loc_updated: NamedSignal = field(init=False, repr=False)
 
     def __attrs_post_init__(self) -> None:
-        self.signal_player_loc_updated = signal(f"{self.__repr__()}_player_loc_updated")
+        self.signal_player_loc_updated = signal(
+            f"{self.__class__.__name__}_player_loc_updated"
+        )
 
     @property
     def player_loc(self) -> Loc:
@@ -78,6 +87,22 @@ class MapDisplay(Display):
     def display_user(self, x: int, y: int) -> None:
         self.print_at(x=self.x_start + x, y=self.y_start + y, text="@", color="green")
 
+    def handle_signal_user_input(
+        self, sender: NamedSignal | None = None, data: dict[str, Any] | None = None
+    ) -> None:
+        if sender is not None:
+            logger.debug(
+                f"{self.__class__.__name__} received signal: {sender} with data: {data}"
+            )
+
+        if data is not None:
+            if data["key"] is not None:
+                player_movement = USER_MOVEMENT[data["key"]]
+        else:
+            raise ValueError("Got empty data package.")
+
+        self.player_loc += player_movement
+
 
 @define
 class OptionsDisplay(Display):
@@ -85,10 +110,12 @@ class OptionsDisplay(Display):
     _options: list[str] = field(default=USER_INPUT_OPTIONS, repr=False)
 
     # Signals
-    signal_options_updated: Signal = field(init=False, repr=False)
+    signal_options_updated: NamedSignal = field(init=False, repr=False)
 
     def __attrs_post_init__(self) -> None:
-        self.signal_options_updated = signal(f"{self.__repr__()}_options_updated")
+        self.signal_options_updated = signal(
+            f"{self.__class__.__name__}_options_updated"
+        )
 
     @property
     def options(self) -> list[str]:
@@ -120,12 +147,12 @@ class DescriptionDisplay(Display):
     _text: str | None = field(default=None, repr=False)
 
     # Signals
-    signal_title_updated: Signal = field(init=False, repr=False)
-    signal_text_updated: Signal = field(init=False, repr=False)
+    signal_title_updated: NamedSignal = field(init=False, repr=False)
+    signal_text_updated: NamedSignal = field(init=False, repr=False)
 
     def __attrs_post_init__(self) -> None:
-        self.signal_title_updated = signal(f"{self.__repr__()}_title_updated")
-        self.signal_text_updated = signal(f"{self.__repr__()}_text_updated")
+        self.signal_title_updated = signal(f"{self.__class__.__name__}_title_updated")
+        self.signal_text_updated = signal(f"{self.__class__.__name__}_text_updated")
 
     @property
     def title(self) -> str | None:
@@ -182,15 +209,15 @@ class LineDisplay(Display):
 
     def vertical(self, x: int, y_min: int, y_max: int) -> None:
         for jdx in range(y_min, y_max + 1):
-            self.print_at(x=x, y=jdx, text=ASCII_CODES["Vertical"], color="navy")
+            self.print_at(x=x, y=jdx, text=ASCII_CODES["Vertical"], color="pink")
 
     def horizontal(self, y: int, x_min: int, x_max: int) -> None:
         for idx in range(x_min, x_max + 1):
-            self.print_at(x=idx, y=y, text=ASCII_CODES["Horizontal"], color="navy")
+            self.print_at(x=idx, y=y, text=ASCII_CODES["Horizontal"], color="pink")
 
     def crossing(self, x: int, y: int) -> None:
         self.print_at(
-            x=x, y=y, text=ASCII_CODES["Up_Left_Right_Crossing"], color="navy"
+            x=x, y=y, text=ASCII_CODES["Up_Left_Right_Crossing"], color="pink"
         )
 
 
@@ -203,15 +230,18 @@ class UI:
     description: DescriptionDisplay = field(repr=False)
 
     # Signals.
-    signal_user_input: Signal = field(init=False, repr=False)
+    signal_user_input: NamedSignal = field(init=False, repr=False)
 
     def __attrs_post_init__(self) -> None:
-        self.signal_user_input = signal(f"{self.__repr__()}_user_input")
+        self.signal_user_input = signal(f"{self.__class__.__name__}_user_input")
+
+        # Connect Signals.
+        self.signal_user_input.connect(self.area_map.handle_signal_user_input)
 
         # Subscribe to Signals.
-        self.description.signal_title_updated.connect(self.refresh_display)
-        self.description.signal_text_updated.connect(self.refresh_display)
-        self.area_map.signal_player_loc_updated.connect(self.refresh_display)
+        self.description.signal_title_updated.connect(self.handle_display_updates)
+        self.description.signal_text_updated.connect(self.handle_display_updates)
+        self.area_map.signal_player_loc_updated.connect(self.handle_display_updates)
 
     def wait_for_key(self, user_key: str | None = None) -> Keystroke:
         """
@@ -235,12 +265,7 @@ class UI:
     def _refresh_screen(self) -> None:
         print(f"{self.term.home}{self.term.clear}")
 
-    def refresh_display(
-        self, sender: Signal | None = None, data: dict[str, Any] | None = None
-    ) -> None:
-        if sender is not None:
-            logger.debug(f"UI.refresh_display got signal: {sender} with data: {data}")
-
+    def refresh_display(self) -> None:
         self._refresh_screen()
         self.line.vertical(
             x=TERMINAL_XY_INIT_MAP.x + MAP_WIDTH + HORIZ_PADDING,
@@ -266,6 +291,15 @@ class UI:
             x=TERMINAL_XY_INIT_MAP.x,
             y=TERMINAL_XY_INIT_MAP.y + MAP_HEIGHT + (2 * VERT_PADDING + 1),
         )
+
+    def handle_display_updates(
+        self, sender: NamedSignal | None = None, data: dict[str, Any] | None = None
+    ) -> None:
+        if sender is not None:
+            logger.debug(
+                f"{self.__class__.__name__} received signal: {sender} with data: {data}"
+            )
+        self.refresh_display()
 
 
 if __name__ == "__main__":
@@ -297,16 +331,7 @@ if __name__ == "__main__":
 
     ui.refresh_display()
 
-    import time
-
-    time.sleep(1)
-    ui.area_map.player_loc += Loc(1, 0)
-
-    time.sleep(1)
-    ui.area_map.player_loc += Loc(1, 0)
-
-    time.sleep(1)
-    ui.area_map.player_loc += Loc(1, 0)
-
-    time.sleep(1)
-    ui.area_map.player_loc += Loc(1, 0)
+    ui.wait_for_key()
+    ui.wait_for_key()
+    ui.wait_for_key()
+    ui.wait_for_key()

@@ -1,7 +1,7 @@
 from typing import Any
 
 from attrs import define
-from blinker import Signal
+from blinker import NamedSignal
 
 from glassdolls import logger
 
@@ -18,9 +18,9 @@ class Loc:
         return (self.x, self.y)
 
 
-def send_signal(signal: Signal, data: dict[str, Any] | None = None) -> None:
-    logger.debug(f"Sending {signal.__repr__()} with data: {data}")
+def send_signal(signal: NamedSignal, data: dict[str, Any] | None = None) -> None:
+    logger.debug(f"Sending {signal.name} with data: {data}")
     if data is not None:
-        signal.send(signal.__repr__(), data=data)
+        signal.send(signal.name, data=data)
     else:
-        signal.send(signal.__repr__())
+        signal.send(signal.name)
