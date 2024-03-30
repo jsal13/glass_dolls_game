@@ -34,6 +34,7 @@ class Game(SignalSender):
         self.player.signal_player_loc_changed.connect(
             self.game_screen.handle_player_loc_changed
         )
+
         self.user_input.signal_player_movement.connect(
             self.player.handle_signal_player_movement
         )

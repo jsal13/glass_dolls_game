@@ -1,10 +1,10 @@
 import pytest
 from unittest.mock import MagicMock, patch
 
-from glassdolls.io.game import Game
+from glassdolls.game import Game
 
 
-@patch("glassdolls.io.game.signal")
+@patch("glassdolls.game.signal")
 def test_game_initializes(mock_signal: MagicMock) -> None:
     game = Game(
         term=MagicMock(),
