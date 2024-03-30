@@ -22,9 +22,8 @@ def test_map_display_initializes() -> None:
     map_display = MapDisplay(
         term=MagicMock(),
         map_ascii=[["." for _ in range(10)] for _ in range(10)],
-        player_map_loc=Loc(x=0, y=1),
-        x_start=0,
-        y_start=1,
+        x_map_start=0,
+        y_map_start=1,
     )
 
 
@@ -80,15 +79,9 @@ def test_game_screen_refresh_display_runs() -> None:
     game_screen.refresh_display()
 
 
-def test_game_screen_handle_player_loc_changed_runs() -> None:
+def test_game_screen_handle_player_map_loc_updated_runs() -> None:
     game_screen = GameScreen(term=MagicMock())
-    game_screen.handle_player_loc_changed("test", data={"location": Loc(x=0, y=1)})
-
-    with pytest.raises(ValueError):
-        game_screen.handle_player_loc_changed("test", data=None)
-
-    with pytest.raises(ValueError):
-        game_screen.handle_player_loc_changed("test", data={"not_location": Loc(0, 1)})
+    game_screen.handle_player_map_loc_updated("test", data={"location": Loc(x=0, y=1)})
 
 
 @patch("glassdolls.io.signals.logger")

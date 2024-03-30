@@ -32,43 +32,53 @@ class Game(SignalSender):
         self.signal_player_movement.connect(self.player.handle_signal_player_movement)
 
         self.player.signal_player_loc_changed.connect(
-            self.game_screen.handle_player_loc_changed
+            self.game_screen.area_map.handle_player_loc_changed
         )
 
         self.user_input.signal_player_movement.connect(
             self.player.handle_signal_player_movement
         )
 
+        # Send necessary init signals.
+        self.send_signal(
+            self.player.signal_player_loc_changed, data={"location": self.player.loc}
+        )
+
 
 if __name__ == "__main__":
-    with open(MAPS_DUNGEON_LEVEL_0_TXT, "r") as f, open(DATA_GAME_DIALOGUE, "r") as g:
-        import json
 
-        dungeon_map = list(list(line) for line in f.readlines())
-        game_text = json.load(g)
+    def run() -> None:
+        with (
+            open(MAPS_DUNGEON_LEVEL_0_TXT, "r") as f,
+            open(DATA_GAME_DIALOGUE, "r") as g,
+        ):
+            import json
 
-    TERM = Terminal()
+            dungeon_map = list(list(line) for line in f.readlines())
+            game_text = json.load(g)
 
-    # Game Screen Init.
-    game_screen = GameScreen(term=TERM)
-    game_screen.area_map.map_ascii = dungeon_map
-    game_screen.description.title = "Hello!"
-    game_screen.description.text = game_text["introduction_0"]
-    game_screen.refresh_display()
+        TERM = Terminal()
 
-    # Game Init.
-    user_input = UserInput(term=TERM)
+        # Game Screen Init.
+        game_screen = GameScreen(term=TERM)
+        game_screen.area_map.map_ascii = dungeon_map
+        game_screen.description.title = "Hello!"
+        game_screen.description.text = game_text["introduction_0"]
+        game_screen.refresh_display()
 
-    from glassdolls.io.utils import Loc
+        # Game Init.
+        user_input = UserInput(term=TERM)
 
-    player = PlayerState()
-    player.loc = Loc(2, 2)
-    game = Game(
-        term=TERM, game_screen=game_screen, user_input=user_input, player=player
-    )
+        from glassdolls.io.utils import Loc
 
-    # Start the Game Stuff.
-    game.user_input.wait_for_key()
-    game.user_input.wait_for_key()
-    # game.user_input.wait_for_key()
-    # game.user_input.wait_for_key()
+        player = PlayerState()
+        player.loc = Loc(2, 2)
+        game = Game(
+            term=TERM, game_screen=game_screen, user_input=user_input, player=player
+        )
+
+        # Start the Game Stuff.
+        while True:
+            game.user_input.wait_for_key()
+
+    run()

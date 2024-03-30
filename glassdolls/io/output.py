@@ -1,4 +1,5 @@
 from typing import Any, Sequence
+from copy import deepcopy
 
 from attrs import define, field
 from blessed import Terminal
@@ -42,7 +43,6 @@ class TerminalPrinter:
             )
 
         color_text = self.term.setaf(ansi_code) + text
-
         print(self.term.move_xy(x=x, y=y) + color_text, end="")
 
 
@@ -50,29 +50,51 @@ class TerminalPrinter:
 class MapDisplay(TerminalPrinter, SignalSender):
     term: Terminal
     map_ascii: list[list[str]] = field(repr=False)
-    player_map_loc: Loc = field(default=Loc(2, 2))
-    x_start: int = field(default=TERMINAL_XY_INIT_MAP.x, repr=False)
-    y_start: int = field(default=TERMINAL_XY_INIT_MAP.y, repr=False)
+    player_map_loc: Loc = field(init=False, default=Loc(0, 0))
+    x_map_start: int = field(default=TERMINAL_XY_INIT_MAP.x, repr=False)
+    y_map_start: int = field(default=TERMINAL_XY_INIT_MAP.y, repr=False)
 
     # Signals
     signal_player_map_loc_updated: NamedSignal = field(init=False, repr=False)
 
+    def __attrs_post_init__(self) -> None:
+        self.signal_player_map_loc_updated = signal(
+            f"{self.__class__.__name__}_player_map_loc_updated"
+        )
+
     def display(self) -> None:
         for jdx, row in enumerate(self.map_ascii):
             self.print_at(
-                x=self.x_start,
-                y=self.y_start + jdx,
+                x=self.x_map_start,
+                y=self.y_map_start + jdx,
                 text="".join(row),
                 color=DUNGEON_WALL_COLOR,
             )
-
-        self.display_user(x=self.player_map_loc.x, y=self.player_map_loc.y)
-        print()
-
-    def display_user(self, x: int, y: int) -> None:
         self.print_at(
-            x=self.x_start + x, y=self.y_start + y, text="@", color=USER_COLOR
+            x=self.x_map_start + self.player_map_loc.x,
+            y=self.y_map_start + self.player_map_loc.y,
+            text="@",
+            color=USER_COLOR,
         )
+
+    def update_player_loc(self, previous_loc: Loc) -> None:
+        self.send_signal(self.signal_player_map_loc_updated, data=None)
+
+    def handle_player_loc_changed(
+        self, signal: str | None = None, data: dict[str, Loc] | None = None
+    ) -> None:
+        # Just update the display.
+        self._log_handle_signal(signal=signal, data=data)
+
+        if data is not None:
+            if data.get("location") is not None:
+                previous_loc = deepcopy(self.player_map_loc)
+                self.player_map_loc = data["location"]
+                self.update_player_loc(previous_loc=previous_loc)
+            else:
+                raise ValueError(f"Got {data}, not a dict with key 'location'.")
+        else:
+            raise ValueError("Got empty data package.")
 
 
 @define
@@ -222,6 +244,9 @@ class GameScreen(SignalSender):
         # Subscribe to Signals.
         self.description.signal_title_updated.connect(self.handle_display_updates)
         self.description.signal_text_updated.connect(self.handle_display_updates)
+        self.area_map.signal_player_map_loc_updated.connect(
+            self.handle_player_map_loc_updated
+        )
 
     def _refresh_screen(self) -> None:
         print(f"{self.term.home}{self.term.clear}")
@@ -253,22 +278,13 @@ class GameScreen(SignalSender):
             y=TERMINAL_XY_INIT_MAP.y + MAP_HEIGHT + (2 * VERT_PADDING + 1),
         )
 
-    def handle_player_loc_changed(
-        self, signal: str | None = None, data: dict[str, Loc] | None = None
-    ) -> None:
-        # Just update the display.
-        self._log_handle_signal(signal=signal, data=data)
-
-        if data is not None:
-            if data.get("location") is not None:
-                self.area_map.player_map_loc = data["location"]
-                self.refresh_display()
-            else:
-                raise ValueError(f"Got {data}, not a dict with key 'location'.")
-        else:
-            raise ValueError("Got empty data package.")
-
     def handle_display_updates(
+        self, signal: str | None = None, data: dict[str, Any] | None = None
+    ) -> None:
+        self._log_handle_signal(signal=signal, data=data)
+        self.refresh_display()
+
+    def handle_player_map_loc_updated(
         self, signal: str | None = None, data: dict[str, Any] | None = None
     ) -> None:
         self._log_handle_signal(signal=signal, data=data)
