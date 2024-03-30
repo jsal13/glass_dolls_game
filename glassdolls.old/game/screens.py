@@ -1,10 +1,10 @@
-from typing import Sequence
 from enum import Enum, auto
-
-import glassdolls
+from typing import Sequence
 
 from blessed import Terminal
 from blessed.keyboard import Keystroke
+
+import glassdolls
 
 
 class ScreenTypes(Enum):

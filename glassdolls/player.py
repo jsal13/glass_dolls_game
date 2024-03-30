@@ -3,10 +3,11 @@ from typing import Any
 from attrs import define, field
 from blinker import NamedSignal, signal
 
-from glassdolls.utils import Loc
 from glassdolls.signals import SignalSender
+from glassdolls.utils import Loc
 
 
+@define
 class PlayerState(SignalSender):
     _loc: Loc = field(init=False)
 
@@ -21,6 +22,9 @@ class PlayerState(SignalSender):
         self.signal_player_loc_changed = signal(
             f"{self.__class__.__name__}_player_loc_changed"
         )
+
+        # Initialize Loc.
+        self.loc = Loc(0, 0)
 
     @property
     def loc(self) -> Loc:

@@ -1,12 +1,8 @@
 import pytest
 
 from glassdolls.puzzle_generation.ciphers import (
-    substitution_cipher,
-    translation_table_make_str_keys,
-    TranslationTable,
-    TranslationTableStrKey,
-    cesaer_cipher,
-)
+    TranslationTable, TranslationTableStrKey, cesaer_cipher,
+    substitution_cipher, translation_table_make_str_keys)
 
 
 @pytest.fixture()

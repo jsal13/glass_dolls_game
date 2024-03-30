@@ -1,22 +1,29 @@
-from typing import Sequence, Any
+from typing import Any, Sequence
 
 from attrs import define, field
-from blinker import signal, NamedSignal
 from blessed import Terminal
 from blessed.keyboard import Keystroke
+from blinker import NamedSignal, signal
 
 from glassdolls import logger
-from glassdolls.signals import SignalSender
-from glassdolls.utils import Loc
 from glassdolls.constants import (
+    ASCII_CODES,
+    DESC_TEXT_COLOR,
+    DESC_TITLE_COLOR,
+    DUNGEON_WALL_COLOR,
     HORIZ_PADDING,
-    VERT_PADDING,
-    MAX_SCREEN_WIDTH,
+    LINE_COLOR,
     MAP_HEIGHT,
     MAP_WIDTH,
+    MAX_SCREEN_WIDTH,
+    OPTIONS_TEXT_COLOR,
+    OPTIONS_TITLE_COLOR,
     TERMINAL_XY_INIT_MAP,
-    ASCII_CODES,
+    USER_COLOR,
+    VERT_PADDING,
 )
+from glassdolls.signals import SignalSender
+from glassdolls.utils import Loc
 
 USER_INPUT_OPTIONS = ["(←↑→↓) Move", "(L)ook", "(U)se", "(I)nventory"]
 
@@ -68,13 +75,20 @@ class MapDisplay(TerminalPrinter, SignalSender):
 
     def display(self) -> None:
         for jdx, row in enumerate(self.map_ascii):
-            self.print_at(x=self.x_start, y=self.y_start + jdx, text="".join(row))
+            self.print_at(
+                x=self.x_start,
+                y=self.y_start + jdx,
+                text="".join(row),
+                color=DUNGEON_WALL_COLOR,
+            )
 
         self.display_user(x=self.player_map_loc.x, y=self.player_map_loc.y)
         print()
 
     def display_user(self, x: int, y: int) -> None:
-        self.print_at(x=self.x_start + x, y=self.y_start + y, text="@", color="green")
+        self.print_at(
+            x=self.x_start + x, y=self.y_start + y, text="@", color=USER_COLOR
+        )
 
 
 @define
@@ -104,10 +118,10 @@ class OptionsDisplay(TerminalPrinter, SignalSender):
         x: int,
         y: int,
     ) -> None:
-        self.print_at(x=x, y=y, text="OPTIONS")
-        self.print_at(x=x, y=y + 1, text="=======")
+        self.print_at(x=x, y=y, text="OPTIONS", color=OPTIONS_TITLE_COLOR)
+        self.print_at(x=x, y=y + 1, text="=======", color=OPTIONS_TITLE_COLOR)
         for jdx, option in enumerate(self.options):
-            self.print_at(x=x, y=y + jdx + 2, text=option)
+            self.print_at(x=x, y=y + jdx + 2, text=option, color=OPTIONS_TEXT_COLOR)
 
         for jdx in range((MAP_HEIGHT + VERT_PADDING) - len(self.options)):
             print()
@@ -147,9 +161,12 @@ class DescriptionDisplay(TerminalPrinter, SignalSender):
 
     def display(self, x: int, y: int) -> None:
         if self.title is not None:
-            self.print_at(x=x, y=y, text=self.title, color="cyan")
+            self.print_at(x=x, y=y, text=self.title, color=DESC_TITLE_COLOR)
             self.print_at(
-                x=x, y=y + 1, text="-" * len(self.title) + "\n\n", color="cyan"
+                x=x,
+                y=y + 1,
+                text="-" * len(self.title) + "\n\n",
+                color=DESC_TITLE_COLOR,
             )
 
         if self.text is not None:
@@ -172,6 +189,7 @@ class DescriptionDisplay(TerminalPrinter, SignalSender):
                     x=x,
                     y=y + y_offset,
                     text="\n".join(line_wrap_list_indented) + "\n\n",
+                    color=DESC_TEXT_COLOR,
                 )
 
                 y_offset += len(line_wrap_list) + 2
@@ -182,15 +200,15 @@ class LineDisplay(TerminalPrinter, SignalSender):
 
     def vertical(self, x: int, y_min: int, y_max: int) -> None:
         for jdx in range(y_min, y_max + 1):
-            self.print_at(x=x, y=jdx, text=ASCII_CODES["Vertical"], color="pink")
+            self.print_at(x=x, y=jdx, text=ASCII_CODES["Vertical"], color=LINE_COLOR)
 
     def horizontal(self, y: int, x_min: int, x_max: int) -> None:
         for idx in range(x_min, x_max + 1):
-            self.print_at(x=idx, y=y, text=ASCII_CODES["Horizontal"], color="pink")
+            self.print_at(x=idx, y=y, text=ASCII_CODES["Horizontal"], color=LINE_COLOR)
 
     def crossing(self, x: int, y: int) -> None:
         self.print_at(
-            x=x, y=y, text=ASCII_CODES["Up_Left_Right_Crossing"], color="pink"
+            x=x, y=y, text=ASCII_CODES["Up_Left_Right_Crossing"], color=LINE_COLOR
         )
 
 

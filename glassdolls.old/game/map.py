@@ -2,7 +2,8 @@ import json
 from enum import Enum, auto
 
 from attrs import define, field
-from glassdolls.constants import MAPS_LEGEND_JSON, MAPS_DUNGEON_LEVEL_0_TXT
+
+from glassdolls.constants import MAPS_DUNGEON_LEVEL_0_TXT, MAPS_LEGEND_JSON
 from glassdolls.game.utils import Loc
 
 

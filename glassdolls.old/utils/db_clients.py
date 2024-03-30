@@ -1,10 +1,10 @@
-from typing import Any, Sequence, TypeAlias
 from abc import ABC, abstractmethod
+from typing import Any, Sequence, TypeAlias
 
-from pymongo import MongoClient
-from pymongo.cursor import Cursor
 import psycopg
 from psycopg import sql
+from pymongo import MongoClient
+from pymongo.cursor import Cursor
 
 from glassdolls.constants import MONGO_CONNECTION_STRING, PG_CONNECTION_STRING
 

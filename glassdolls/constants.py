@@ -1,4 +1,5 @@
 import os
+
 import dotenv
 
 from glassdolls.utils import Loc
@@ -44,6 +45,15 @@ DIFFICULTY_RANK = {
         "large prime factors": "Medium",
     },
 }
+
+# COLORS
+USER_COLOR = "magenta"
+DESC_TITLE_COLOR = "cyan"
+DESC_TEXT_COLOR = "white"
+OPTIONS_TITLE_COLOR = "cyan"
+OPTIONS_TEXT_COLOR = "white"
+LINE_COLOR = "pink"
+DUNGEON_WALL_COLOR = "white"
 
 # DISPLAY CONSTANTS
 HORIZ_PADDING = 2

@@ -1,4 +1,5 @@
 import string
+
 import pytest
 from blessed.keyboard import Keystroke
 

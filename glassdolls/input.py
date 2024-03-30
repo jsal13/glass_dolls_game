@@ -2,13 +2,16 @@
 Used for Player Input.
 """
 
-from typing import Sequence
+import sys
+from typing import Any, Sequence
+
+import blessed
 from attrs import define, field
 from blessed.keyboard import Keystroke
-import blessed
-from blinker import NamedSignal
+from blinker import NamedSignal, signal
 
 from glassdolls import logger
+from glassdolls.constants import USER_MOVEMENT
 from glassdolls.signals import SignalSender
 
 
@@ -18,6 +21,13 @@ class UserInput(SignalSender):
 
     # Signals
     signal_user_input: NamedSignal = field(init=False, repr=False)
+    signal_player_movement: NamedSignal = field(init=False, repr=False)
+
+    def __attrs_post_init__(self) -> None:
+        self.signal_user_input = signal(f"{self.__class__.__name__}_user_input")
+        self.signal_user_input.connect(self.handle_signal_user_input)
+
+        self.signal_player_movement = signal(f"{self.__class__.__name__}_user_movement")
 
     def wait_for_key(
         self, available_user_key: Sequence[Keystroke] | Sequence[str] | None = None
@@ -50,6 +60,25 @@ class UserInput(SignalSender):
         logger.debug(f'USER INPUT: "{key_value}"')
         self.send_signal(self.signal_user_input, data={"key": key_value})
         return key_value
+
+    def handle_signal_user_input(
+        self, signal: str | None = None, data: dict[str, Any] | None = None
+    ) -> None:
+        self._log_handle_signal(signal=signal, data=data)
+
+        if data is not None:
+            if (user_key := data["key"]) is not None:
+                if user_key in ["KEY_LEFT", "KEY_RIGHT", "KEY_DOWN", "KEY_UP"]:
+                    player_movement = USER_MOVEMENT[user_key]
+                    self.send_signal(
+                        self.signal_player_movement, data={"direction": player_movement}
+                    )
+
+                elif data["key"] == "Q":
+                    sys.exit(0)
+
+        else:
+            raise ValueError("Got empty data package.")
 
 
 if __name__ == "__main__":

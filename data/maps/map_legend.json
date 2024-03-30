@@ -1,6 +1,6 @@
 {
     "dungeon": {
-        "unexplored": "░",
+        "unexplored": " ",
         "puzzle": "∮",
         "chest": "$",
         "enemy": "ξ",
@@ -12,6 +12,7 @@
         "nothing": " "
     },
     "cute_symbols_unused": [
-        "⌂"
+        "⌂",
+        "░"
     ]
 }

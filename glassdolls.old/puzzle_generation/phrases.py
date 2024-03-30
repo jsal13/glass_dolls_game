@@ -1,4 +1,5 @@
 import re
+
 from bs4 import BeautifulSoup
 
 from glassdolls.constants import DATA_RANDOM_PHRASE_EN_XML

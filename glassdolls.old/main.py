@@ -1,18 +1,12 @@
 from functools import partial
 
 import glassdolls
-from glassdolls.game.components import (
-    DescriptionWidget,
-    InputWidget,
-    HorizontalRule,
-    MapRenderWidget,
-    OptionsWidget,
-)
-
+from glassdolls.game.components import (DescriptionWidget, HorizontalRule,
+                                        InputWidget, MapRenderWidget,
+                                        OptionsWidget)
 from glassdolls.game.map import GAME_AREAS
-from glassdolls.game.state import USER_STATE, TERM, TEXT, SCREEN
+from glassdolls.game.state import SCREEN, TERM, TEXT, USER_STATE
 from glassdolls.game.utils import Loc
-
 
 desc_wgt: partial[DescriptionWidget] = partial(DescriptionWidget, term=TERM)
 input_wgt: partial[InputWidget] = partial(InputWidget, term=TERM)

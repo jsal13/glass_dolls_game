@@ -1,9 +1,9 @@
-from unittest.mock import patch, mock_open
+from unittest.mock import mock_open, patch
 
 import pytest
 
-from glassdolls.puzzle_generation.phrases import get_phrase_list
 from glassdolls.constants import DATA_RANDOM_PHRASE_EN_XML
+from glassdolls.puzzle_generation.phrases import get_phrase_list
 
 
 @pytest.fixture()

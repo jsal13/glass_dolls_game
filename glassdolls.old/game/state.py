@@ -1,7 +1,7 @@
 from blessed import Terminal
-from glassdolls.game.game_text import GameText
-from glassdolls.game.screens import ScreenTypes, ScreenRenderer
 
+from glassdolls.game.game_text import GameText
+from glassdolls.game.screens import ScreenRenderer, ScreenTypes
 from glassdolls.game.utils import Loc
 
 TERM = Terminal()

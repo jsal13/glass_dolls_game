@@ -1,13 +1,10 @@
 from typing import Generator
+from unittest.mock import MagicMock, patch
 
 import pytest
 from pytest_mock import MockerFixture, MockType
-from unittest.mock import patch, MagicMock
 
-from glassdolls.utils.db_clients import (
-    MongoDB,
-    PostgresDB,
-)
+from glassdolls.utils.db_clients import MongoDB, PostgresDB
 
 ## POSTGRES
 
