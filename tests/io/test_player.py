@@ -19,4 +19,6 @@ def test_player_state_handle_player_movement_runs(mock_logger: MagicMock) -> Non
 
     with pytest.raises(ValueError):
         player_state.handle_signal_player_movement("test", data=None)
+
+    with pytest.raises(ValueError):
         player_state.handle_signal_player_movement("test", data={"not_direction": 1})

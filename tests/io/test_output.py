@@ -86,6 +86,8 @@ def test_game_screen_handle_player_loc_changed_runs() -> None:
 
     with pytest.raises(ValueError):
         game_screen.handle_player_loc_changed("test", data=None)
+
+    with pytest.raises(ValueError):
         game_screen.handle_player_loc_changed("test", data={"not_location": Loc(0, 1)})
 
 

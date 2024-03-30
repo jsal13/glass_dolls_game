@@ -49,14 +49,13 @@ class UserInput(SignalSender):
                 val = self.term.inkey()
 
                 if val is not None:
-                    if val.is_sequence:
-                        if val.name is None:
-                            raise ValueError("Key value for {val} is 'None'.")
+                    if hasattr(val, "name"):
                         key_value = val.name
                         break
-                    elif val:
+                    else:
                         key_value = str(val)
                         break
+
         logger.debug(f'USER INPUT: "{key_value}"')
         self.send_signal(self.signal_user_input, data={"key": key_value})
         return key_value
@@ -74,8 +73,11 @@ class UserInput(SignalSender):
                         self.signal_player_movement, data={"direction": player_movement}
                     )
 
-                elif data["key"] == "Q":
+                elif data.get("key") == "Q":
                     sys.exit(0)
+
+            else:
+                raise ValueError(f"Got {data}, not a dict with key 'key'.")
 
         else:
             raise ValueError("Got empty data package.")
