@@ -1,6 +1,8 @@
 import os
 import dotenv
 
+from glassdolls.utils import Loc
+
 dotenv.load_dotenv()
 
 # GENERAL DATA
@@ -41,4 +43,27 @@ DIFFICULTY_RANK = {
         "small prime factors": "Easy",
         "large prime factors": "Medium",
     },
+}
+
+# DISPLAY CONSTANTS
+HORIZ_PADDING = 2
+VERT_PADDING = 1
+MAX_SCREEN_WIDTH = 80
+MAP_WIDTH = 16
+MAP_HEIGHT = 16
+TERMINAL_XY_INIT_MAP = Loc(1 + HORIZ_PADDING, 1 + VERT_PADDING)  # Upper-left.
+
+ASCII_CODES = {
+    "Vertical": "║",
+    "Horizontal": "═",
+    "Crossing": "╬",
+    "Up_Left_Right_Crossing": "╩",
+}
+
+# USER CONSTANTS
+USER_MOVEMENT = {
+    "KEY_LEFT": Loc(-1, 0),
+    "KEY_RIGHT": Loc(1, 0),
+    "KEY_DOWN": Loc(0, 1),
+    "KEY_UP": Loc(0, -1),
 }

@@ -6,33 +6,23 @@ from blessed import Terminal
 from blessed.keyboard import Keystroke
 
 from glassdolls import logger
+from glassdolls.signals import SignalSender
 from glassdolls.utils import Loc
-from glassdolls.constants import MAPS_DUNGEON_LEVEL_0_TXT, DATA_GAME_DIALOGUE
+from glassdolls.constants import (
+    HORIZ_PADDING,
+    VERT_PADDING,
+    MAX_SCREEN_WIDTH,
+    MAP_HEIGHT,
+    MAP_WIDTH,
+    TERMINAL_XY_INIT_MAP,
+    ASCII_CODES,
+)
 
-HORIZ_PADDING = 2
-VERT_PADDING = 1
 USER_INPUT_OPTIONS = ["(←↑→↓) Move", "(L)ook", "(U)se", "(I)nventory"]
-MAX_SCREEN_WIDTH = 80
-MAP_WIDTH = 16
-MAP_HEIGHT = 16
-TERMINAL_XY_INIT_MAP = Loc(1 + HORIZ_PADDING, 1 + VERT_PADDING)  # Upper-left.
-ASCII_CODES = {
-    "Vertical": "║",
-    "Horizontal": "═",
-    "Crossing": "╬",
-    "Up_Left_Right_Crossing": "╩",
-}
-
-USER_MOVEMENT = {
-    "KEY_LEFT": Loc(-1, 0),
-    "KEY_RIGHT": Loc(1, 0),
-    "KEY_DOWN": Loc(0, 1),
-    "KEY_UP": Loc(0, -1),
-}
 
 
 @define
-class Display:
+class TerminalPrinter:
     term: Terminal
 
     def print_at(self, x: int, y: int, text: str, color: str = "white") -> None:
@@ -64,74 +54,31 @@ class Display:
 
         print(self.term.move_xy(x=x, y=y) + color_text, end="")
 
-    def send_signal(
-        self, signal: NamedSignal, data: dict[str, Any] | None = None
-    ) -> None:
-        logger.debug(
-            f'SENT ("{self.__class__.__name__}") Signal: "{signal.name}".  Data: "{data}"'
-        )
-        signal.send(signal.name, data=data)
-
-    def _log_handle_signal(
-        self, signal: str | None, data: dict[str, Any] | None
-    ) -> None:
-        if signal is not None:
-            logger.debug(
-                f'GOT  ("{self.__class__.__name__}") Signal: "{signal}".  Data: "{data}"'
-            )
-
 
 @define
-class MapDisplay(Display):
+class MapDisplay(TerminalPrinter, SignalSender):
     term: Terminal
     map_ascii: list[list[str]] = field(repr=False)
-    _player_loc: Loc = field(default=Loc(2, 2))
+    player_map_loc: Loc = field(default=Loc(2, 2))
     x_start: int = field(default=TERMINAL_XY_INIT_MAP.x, repr=False)
     y_start: int = field(default=TERMINAL_XY_INIT_MAP.y, repr=False)
 
     # Signals
-    signal_player_loc_updated: NamedSignal = field(init=False, repr=False)
-
-    def __attrs_post_init__(self) -> None:
-        self.signal_player_loc_updated = signal(
-            f"{self.__class__.__name__}_player_loc_updated"
-        )
-
-    @property
-    def player_loc(self) -> Loc:
-        return self._player_loc
-
-    @player_loc.setter
-    def player_loc(self, value: Loc) -> None:
-        self._player_loc = value
-        self.send_signal(self.signal_player_loc_updated, data={"loc": self.player_loc})
+    signal_player_map_loc_updated: NamedSignal = field(init=False, repr=False)
 
     def display(self) -> None:
         for jdx, row in enumerate(self.map_ascii):
             self.print_at(x=self.x_start, y=self.y_start + jdx, text="".join(row))
 
-        self.display_user(x=self.player_loc.x, y=self.player_loc.y)
+        self.display_user(x=self.player_map_loc.x, y=self.player_map_loc.y)
         print()
 
     def display_user(self, x: int, y: int) -> None:
         self.print_at(x=self.x_start + x, y=self.y_start + y, text="@", color="green")
 
-    def handle_signal_user_input(
-        self, signal: str | None = None, data: dict[str, Any] | None = None
-    ) -> None:
-        self._log_handle_signal(signal=signal, data=data)
-
-        if data is not None:
-            if data["key"] is not None:
-                player_movement = USER_MOVEMENT[data["key"]]
-        else:
-            raise ValueError("Got empty data package.")
-
-        self.player_loc += player_movement
-
 
 @define
-class OptionsDisplay(Display):
+class OptionsDisplay(TerminalPrinter, SignalSender):
     term: Terminal
     _options: list[str] = field(default=USER_INPUT_OPTIONS, repr=False)
 
@@ -167,7 +114,7 @@ class OptionsDisplay(Display):
 
 
 @define
-class DescriptionDisplay(Display):
+class DescriptionDisplay(TerminalPrinter, SignalSender):
     term: Terminal
     _title: str | None = field(default=None)
     _text: str | None = field(default=None, repr=False)
@@ -231,7 +178,7 @@ class DescriptionDisplay(Display):
 
 
 @define
-class LineDisplay(Display):
+class LineDisplay(TerminalPrinter, SignalSender):
 
     def vertical(self, x: int, y_min: int, y_max: int) -> None:
         for jdx in range(y_min, y_max + 1):
@@ -248,45 +195,31 @@ class LineDisplay(Display):
 
 
 @define
-class UI(Display):
-    term: Terminal = field(repr=False)
-    area_map: MapDisplay = field(repr=False)
-    options: OptionsDisplay = field(repr=False)
-    line: LineDisplay = field(repr=False)
-    description: DescriptionDisplay = field(repr=False)
+class GameScreen(SignalSender):
+    """Combines the Display elements into a full game screen."""
 
+    term: Terminal = field(repr=False)
+    area_map: MapDisplay = field(init=False, repr=False)
+    options: OptionsDisplay = field(init=False, repr=False)
+    line: LineDisplay = field(init=False, repr=False)
+    description: DescriptionDisplay = field(init=False, repr=False)
     # Signals.
     signal_user_input: NamedSignal = field(init=False, repr=False)
 
     def __attrs_post_init__(self) -> None:
-        self.signal_user_input = signal(f"{self.__class__.__name__}_user_input")
+        # Initialize the stuff.
+        self.area_map = MapDisplay(
+            term=self.term, map_ascii=[["." for _ in range(16)] for _ in range(16)]
+        )
+        self.options = OptionsDisplay(term=self.term)
+        self.line = LineDisplay(term=self.term)
+        self.description = DescriptionDisplay(term=self.term)
 
-        # Connect Signals.
-        self.signal_user_input.connect(self.area_map.handle_signal_user_input)
+        self.signal_user_input = signal(f"{self.__class__.__name__}_user_input")
 
         # Subscribe to Signals.
         self.description.signal_title_updated.connect(self.handle_display_updates)
         self.description.signal_text_updated.connect(self.handle_display_updates)
-        self.area_map.signal_player_loc_updated.connect(self.handle_display_updates)
-
-    def wait_for_key(self, user_key: str | None = None) -> Keystroke:
-        """
-        Wait for user_input with value ``key``.
-
-        Notes
-        -----
-        See: https://blessed.readthedocs.io/en/latest/keyboard.html#keycodes
-
-        Args:
-            user_key (str | None, optional): Keycode for desired user key.  None will take any key. Defaults to None.
-        """
-        with self.term.cbreak():
-            while True:
-                val = self.term.inkey()
-                if val.is_sequence and ((user_key is None) or (val.name == user_key)):
-                    self.send_signal(self.signal_user_input, data={"key": val.name})
-                    break
-        return val
 
     def _refresh_screen(self) -> None:
         print(f"{self.term.home}{self.term.clear}")
@@ -311,50 +244,26 @@ class UI(Display):
 
         self.options.display(
             x=(TERMINAL_XY_INIT_MAP.x + MAP_WIDTH + HORIZ_PADDING + 1 + HORIZ_PADDING),
-            y=VERT_PADDING,
+            y=TERMINAL_XY_INIT_MAP.y,
         )
         self.description.display(
             x=TERMINAL_XY_INIT_MAP.x,
             y=TERMINAL_XY_INIT_MAP.y + MAP_HEIGHT + (2 * VERT_PADDING + 1),
         )
 
+    def handle_player_loc_changed(
+        self, signal: str | None = None, data: dict[str, Loc] | None = None
+    ) -> None:
+        # Just update the display.
+        self._log_handle_signal(signal=signal, data=data)
+
+        if data is not None:
+            if data["location"] is not None:
+                self.area_map.player_map_loc = data["location"]
+                self.refresh_display()
+
     def handle_display_updates(
         self, signal: str | None = None, data: dict[str, Any] | None = None
     ) -> None:
         self._log_handle_signal(signal=signal, data=data)
         self.refresh_display()
-
-
-if __name__ == "__main__":
-    with open(MAPS_DUNGEON_LEVEL_0_TXT, "r") as f:
-        dungeon_map = list(list(line) for line in f.readlines())
-
-    with open(DATA_GAME_DIALOGUE, "r") as g:
-        import json
-
-        game_text = json.load(g)
-
-    TERM = Terminal()
-
-    # Initialize this stuff.
-    area_map = MapDisplay(term=TERM, map_ascii=dungeon_map)
-    description = DescriptionDisplay(
-        term=TERM, title="Hello!", text=game_text["introduction_0"]
-    )
-    options = OptionsDisplay(term=TERM, options=USER_INPUT_OPTIONS)
-    line = LineDisplay(term=TERM)
-
-    ui = UI(
-        term=TERM,
-        area_map=area_map,
-        description=description,
-        line=line,
-        options=options,
-    )
-
-    ui.refresh_display()
-
-    ui.wait_for_key()
-    ui.wait_for_key()
-    ui.wait_for_key()
-    ui.wait_for_key()
