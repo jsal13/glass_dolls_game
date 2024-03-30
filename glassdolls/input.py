@@ -12,4 +12,4 @@ class UserInput:
     _key: str = field(init=False)
 
     def __attrs_post_init__(self) -> None:
-        self._key = self.keypress.lower()
+        self._key = self.keypress.upper()

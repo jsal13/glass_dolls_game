@@ -11,4 +11,4 @@ from glassdolls.input import UserInput
 )
 def test_user_input_parses_ascii_key_correctly(user_input: str) -> None:
     ui = UserInput(keypress=Keystroke(user_input))
-    assert ui._key == user_input.lower()
+    assert ui._key == user_input.upper()

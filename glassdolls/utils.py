@@ -16,11 +16,3 @@ class Loc:
 
     def astuple(self) -> tuple[int, int]:
         return (self.x, self.y)
-
-
-def send_signal(signal: NamedSignal, data: dict[str, Any] | None = None) -> None:
-    logger.debug(f"Sending {signal.name} with data: {data}")
-    if data is not None:
-        signal.send(signal.name, data=data)
-    else:
-        signal.send(signal.name)

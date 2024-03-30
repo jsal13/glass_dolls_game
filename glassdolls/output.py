@@ -6,7 +6,7 @@ from blessed import Terminal
 from blessed.keyboard import Keystroke
 
 from glassdolls import logger
-from glassdolls.utils import Loc, send_signal
+from glassdolls.utils import Loc
 from glassdolls.constants import MAPS_DUNGEON_LEVEL_0_TXT, DATA_GAME_DIALOGUE
 
 HORIZ_PADDING = 2
@@ -40,16 +40,45 @@ class Display:
 
         if color == "white":
             color_text = self.term.white(text)
-        elif color == "cyan":
-            color_text = self.term.cyan(text)
-        elif color == "pink":
-            color_text = self.term.pink(text)
+        elif color == "black":
+            color_text = self.term.black(text)
+        elif color == "red":
+            color_text = self.term.red(text)
         elif color == "green":
             color_text = self.term.green(text)
+        elif color == "yellow":
+            color_text = self.term.yellow(text)
+        elif color == "blue":
+            color_text = self.term.blue(text)
+        elif color == "magenta":
+            color_text = self.term.magenta(text)
+        elif color == "cyan":
+            color_text = self.term.cyan(text)
+        elif color == "yellow":
+            color_text = self.term.yellow(text)
+        # Below NOT supported on 8-bit consoles.
+        elif color == "pink":
+            color_text = self.term.pink(text)
         else:
             raise ValueError(f"No such color {color} implemented.")
 
         print(self.term.move_xy(x=x, y=y) + color_text, end="")
+
+    def send_signal(
+        self, signal: NamedSignal, data: dict[str, Any] | None = None
+    ) -> None:
+        logger.debug(
+            f'SENT ("{self.__class__.__name__}") Signal: "{signal.name}".  Data: "{data}"'
+        )
+        signal.send(signal.name, data=data)
+
+    def _log_handle_signal(
+        self, signal: str | None, data: dict[str, Any] | None
+    ) -> None:
+        if signal is not None:
+            logger.debug(
+                f'GOT  ("{self.__class__.__name__}") Signal: "{signal}".  Data: "{data}"'
+            )
 
 
 @define
@@ -75,7 +104,7 @@ class MapDisplay(Display):
     @player_loc.setter
     def player_loc(self, value: Loc) -> None:
         self._player_loc = value
-        send_signal(self.signal_player_loc_updated, data={"loc": self.player_loc})
+        self.send_signal(self.signal_player_loc_updated, data={"loc": self.player_loc})
 
     def display(self) -> None:
         for jdx, row in enumerate(self.map_ascii):
@@ -88,12 +117,9 @@ class MapDisplay(Display):
         self.print_at(x=self.x_start + x, y=self.y_start + y, text="@", color="green")
 
     def handle_signal_user_input(
-        self, sender: NamedSignal | None = None, data: dict[str, Any] | None = None
+        self, signal: str | None = None, data: dict[str, Any] | None = None
     ) -> None:
-        if sender is not None:
-            logger.debug(
-                f"{self.__class__.__name__} received signal: {sender} with data: {data}"
-            )
+        self._log_handle_signal(signal=signal, data=data)
 
         if data is not None:
             if data["key"] is not None:
@@ -124,7 +150,7 @@ class OptionsDisplay(Display):
     @options.setter
     def options(self, value: list[str]) -> None:
         self._options = value
-        send_signal(self.signal_options_updated)
+        self.send_signal(self.signal_options_updated)
 
     def display(
         self,
@@ -161,7 +187,7 @@ class DescriptionDisplay(Display):
     @title.setter
     def title(self, value: str | None) -> None:
         self._title = value
-        send_signal(self.signal_title_updated)
+        self.send_signal(self.signal_title_updated)
 
     @property
     def text(self) -> str | None:
@@ -170,7 +196,7 @@ class DescriptionDisplay(Display):
     @text.setter
     def text(self, value: str | None) -> None:
         self._text = value
-        send_signal(self.signal_text_updated)
+        self.send_signal(self.signal_text_updated)
 
     def display(self, x: int, y: int) -> None:
         if self.title is not None:
@@ -222,7 +248,7 @@ class LineDisplay(Display):
 
 
 @define
-class UI:
+class UI(Display):
     term: Terminal = field(repr=False)
     area_map: MapDisplay = field(repr=False)
     options: OptionsDisplay = field(repr=False)
@@ -258,7 +284,7 @@ class UI:
             while True:
                 val = self.term.inkey()
                 if val.is_sequence and ((user_key is None) or (val.name == user_key)):
-                    send_signal(self.signal_user_input, data={"key": val.name})
+                    self.send_signal(self.signal_user_input, data={"key": val.name})
                     break
         return val
 
@@ -293,12 +319,9 @@ class UI:
         )
 
     def handle_display_updates(
-        self, sender: NamedSignal | None = None, data: dict[str, Any] | None = None
+        self, signal: str | None = None, data: dict[str, Any] | None = None
     ) -> None:
-        if sender is not None:
-            logger.debug(
-                f"{self.__class__.__name__} received signal: {sender} with data: {data}"
-            )
+        self._log_handle_signal(signal=signal, data=data)
         self.refresh_display()
 
 
