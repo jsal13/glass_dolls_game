@@ -2,12 +2,11 @@ from attrs import define, field
 from blessed import Terminal
 from blinker import NamedSignal, signal
 
-from glassdolls import logger
 from glassdolls.constants import DATA_GAME_DIALOGUE, MAPS_DUNGEON_LEVEL_0_TXT
-from glassdolls.input import UserInput
-from glassdolls.output import GameScreen
-from glassdolls.player import PlayerState
-from glassdolls.signals import SignalSender
+from glassdolls.io.input import UserInput
+from glassdolls.io.output import GameScreen
+from glassdolls.io.player import PlayerState
+from glassdolls.io.signals import SignalSender
 
 
 @define
@@ -31,6 +30,7 @@ class Game(SignalSender):
 
         # Subscribe to Signals.
         self.signal_player_movement.connect(self.player.handle_signal_player_movement)
+
         self.player.signal_player_loc_changed.connect(
             self.game_screen.handle_player_loc_changed
         )
@@ -58,7 +58,7 @@ if __name__ == "__main__":
     # Game Init.
     user_input = UserInput(term=TERM)
 
-    from glassdolls.utils import Loc
+    from glassdolls.io.utils import Loc
 
     player = PlayerState()
     player.loc = Loc(2, 2)

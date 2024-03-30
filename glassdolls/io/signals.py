@@ -3,7 +3,7 @@ from typing import Any
 from attrs import define
 from blinker import NamedSignal
 
-from glassdolls import logger
+from glassdolls.io import logger
 
 
 @define

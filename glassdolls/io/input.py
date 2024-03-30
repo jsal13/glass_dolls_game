@@ -10,9 +10,9 @@ from attrs import define, field
 from blessed.keyboard import Keystroke
 from blinker import NamedSignal, signal
 
-from glassdolls import logger
+from glassdolls.io import logger
 from glassdolls.constants import USER_MOVEMENT
-from glassdolls.signals import SignalSender
+from glassdolls.io.signals import SignalSender
 
 
 @define
@@ -67,7 +67,7 @@ class UserInput(SignalSender):
         self._log_handle_signal(signal=signal, data=data)
 
         if data is not None:
-            if (user_key := data["key"]) is not None:
+            if (user_key := data.get("key")) is not None:
                 if user_key in ["KEY_LEFT", "KEY_RIGHT", "KEY_DOWN", "KEY_UP"]:
                     player_movement = USER_MOVEMENT[user_key]
                     self.send_signal(

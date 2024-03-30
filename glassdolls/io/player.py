@@ -3,8 +3,8 @@ from typing import Any
 from attrs import define, field
 from blinker import NamedSignal, signal
 
-from glassdolls.signals import SignalSender
-from glassdolls.utils import Loc
+from glassdolls.io.signals import SignalSender
+from glassdolls.io.utils import Loc
 
 
 @define
@@ -41,7 +41,9 @@ class PlayerState(SignalSender):
         self._log_handle_signal(signal=signal, data=data)
 
         if data is not None:
-            if data["direction"] is not None:
+            if data.get("direction") is not None:
                 self.loc += data["direction"]
             else:
                 raise ValueError(f"Got {data}, not a dict with key 'direction'.")
+        else:
+            raise ValueError("Got empty data package.")

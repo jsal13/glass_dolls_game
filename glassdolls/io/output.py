@@ -5,7 +5,7 @@ from blessed import Terminal
 from blessed.keyboard import Keystroke
 from blinker import NamedSignal, signal
 
-from glassdolls import logger
+from glassdolls.io import logger
 from glassdolls.constants import (
     ASCII_CODES,
     DESC_TEXT_COLOR,
@@ -21,9 +21,10 @@ from glassdolls.constants import (
     TERMINAL_XY_INIT_MAP,
     USER_COLOR,
     VERT_PADDING,
+    COLOR_TO_ANSI,
 )
-from glassdolls.signals import SignalSender
-from glassdolls.utils import Loc
+from glassdolls.io.signals import SignalSender
+from glassdolls.io.utils import Loc
 
 USER_INPUT_OPTIONS = ["(←↑→↓) Move", "(L)ook", "(U)se", "(I)nventory"]
 
@@ -33,31 +34,14 @@ class TerminalPrinter:
     term: Terminal
 
     def print_at(self, x: int, y: int, text: str, color: str = "white") -> None:
-        color_text: str
 
-        if color == "white":
-            color_text = self.term.white(text)
-        elif color == "black":
-            color_text = self.term.black(text)
-        elif color == "red":
-            color_text = self.term.red(text)
-        elif color == "green":
-            color_text = self.term.green(text)
-        elif color == "yellow":
-            color_text = self.term.yellow(text)
-        elif color == "blue":
-            color_text = self.term.blue(text)
-        elif color == "magenta":
-            color_text = self.term.magenta(text)
-        elif color == "cyan":
-            color_text = self.term.cyan(text)
-        elif color == "yellow":
-            color_text = self.term.yellow(text)
-        # Below NOT supported on 8-bit consoles.
-        elif color == "pink":
-            color_text = self.term.pink(text)
-        else:
-            raise ValueError(f"No such color {color} implemented.")
+        ansi_code = COLOR_TO_ANSI.get(color)
+        if ansi_code is None:
+            raise ValueError(
+                f"Color {color} is not a valid color.\nPlease choose one of: `{'`, `'.join(COLOR_TO_ANSI.keys())}`."
+            )
+
+        color_text = self.term.setaf(ansi_code) + text
 
         print(self.term.move_xy(x=x, y=y) + color_text, end="")
 
@@ -276,9 +260,13 @@ class GameScreen(SignalSender):
         self._log_handle_signal(signal=signal, data=data)
 
         if data is not None:
-            if data["location"] is not None:
+            if data.get("location") is not None:
                 self.area_map.player_map_loc = data["location"]
                 self.refresh_display()
+            else:
+                raise ValueError(f"Got {data}, not a dict with key 'location'.")
+        else:
+            raise ValueError("Got empty data package.")
 
     def handle_display_updates(
         self, signal: str | None = None, data: dict[str, Any] | None = None
