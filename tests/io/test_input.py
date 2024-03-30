@@ -29,7 +29,7 @@ def test_user_input_handle_signal_user_input_runs() -> None:
 def test_user_input_wait_for_key_runs() -> None:
     mock_terminal = MagicMock()
     mock_terminal.cbreak = MagicMock()
-    mock_terminal.inkey = lambda: "A"
+    mock_terminal.inkey = lambda: Keystroke("A")
     user_input = UserInput(term=mock_terminal)
     user_input.wait_for_key()
 

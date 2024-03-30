@@ -43,20 +43,18 @@ class UserInput(SignalSender):
             user_key (str | None, optional): Keycode for desired user key.  None will take any key. Defaults to None.
         """
         with self.term.cbreak():
-            key_value: str
 
             while True:
-                val = self.term.inkey()
+                val: Keystroke = self.term.inkey()
 
                 if val is not None:
-                    if hasattr(val, "name"):
-                        key_value = val.name
-                        break
-                    else:
-                        key_value = str(val)
-                        break
+                    # If it's a sequence (like up arrow), take the key name.
+                    # Make all key values upper for standardization.
+                    key_value = val if not val.is_sequence else val.name
+                    key_value = key_value.upper()
+                    break
 
-        logger.debug(f'USER INPUT: "{key_value}"')
+        logger.debug(f'USER INPUT: {val} ("{key_value}")')
         self.send_signal(self.signal_user_input, data={"key": key_value})
         return key_value
 
