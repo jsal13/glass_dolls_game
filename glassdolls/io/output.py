@@ -1,7 +1,6 @@
 import textwrap
 import json
 import curses
-from typing import Any
 from copy import deepcopy
 
 from attrs import define, field
@@ -12,7 +11,6 @@ from glassdolls.game.maps import Map
 
 from blinker import NamedSignal, signal
 
-from glassdolls import logger
 from glassdolls.constants import (
     HORIZ_PADDING,
     MAP_HEIGHT,
@@ -24,17 +22,19 @@ from glassdolls.constants import (
     DATA_GAME_DIALOGUE,
     DESCRIPTION_HEIGHT,
 )
+from glassdolls.io.utils import Color
 
 USER_INPUT_OPTIONS = "(←↑→↓) Move\n(L)ook\n(U)se\n(I)nventory"
 
 
-USER_COLOR = "hi_purple"
-DESC_TITLE_COLOR = "cyan"
-DESC_TEXT_COLOR = "white"
-OPTIONS_TITLE_COLOR = "cyan"
-OPTIONS_TEXT_COLOR = "white"
-LINE_COLOR = "hi_red"
-DUNGEON_WALL_COLOR = "white"
+PLAYER_COLOR = "CYAN"
+DESC_TITLE_COLOR = "CYAN"
+DESC_TEXT_COLOR = "WHITE"
+OPTIONS_TITLE_COLOR = "CYAN"
+OPTIONS_TEXT_COLOR = "WHITE"
+LINE_COLOR = "YELLOW"
+DUNGEON_WALL_COLOR = "WHITE"
+INPUT_BORDER_COLOR = "CYAN"
 
 
 @define
@@ -130,6 +130,8 @@ class InputWindow(Window):
 class MapDisplay(Window, SignalSender):
     player_map_loc: Loc = field(init=False, default=Loc(0, 0))
     _current_map: Map = field(init=False, repr=False, default=Map())
+    map_color: int = field(default=0)
+    player_color: int = field(default=512)
 
     def __attrs_post_init__(self) -> None:
         Window.__attrs_post_init__(self)
@@ -155,14 +157,14 @@ class MapDisplay(Window, SignalSender):
                 x=0,
                 y=jdx,
                 text="".join(row),
-                color=0,
+                color=self.map_color,
             )
 
         self.print_at(
             x=self.player_map_loc.x,
             y=self.player_map_loc.y,
             text="@",
-            color=256,
+            color=self.player_color,
         )
         self.refresh()
 
@@ -264,6 +266,7 @@ class GameScreen(SignalSender):
     """Combines the Display elements into a full game screen."""
 
     term: "curses._CursesWindow" = field(repr=False)
+    color: Color = field(repr=False)
     area_map: MapDisplay = field(init=False, repr=False)
     options: DescriptionDisplay = field(init=False, repr=False)
     description: DescriptionDisplay = field(init=False, repr=False)
@@ -276,6 +279,8 @@ class GameScreen(SignalSender):
             width=MAP_WIDTH,
             border=0,
             border_color=0,
+            map_color=self.color[DUNGEON_WALL_COLOR],
+            player_color=self.color[PLAYER_COLOR],
         )
 
         self.options = DescriptionDisplay(
@@ -284,6 +289,8 @@ class GameScreen(SignalSender):
             width=20,
             border=0,
             border_color=0,
+            text_color=self.color[OPTIONS_TEXT_COLOR],
+            title_color=self.color[OPTIONS_TITLE_COLOR],
         )
 
         self.description = DescriptionDisplay(
@@ -292,6 +299,8 @@ class GameScreen(SignalSender):
             width=MAX_SCREEN_WIDTH,
             border=0,
             border_color=0,
+            text_color=self.color[DESC_TEXT_COLOR],
+            title_color=self.color[DESC_TITLE_COLOR],
         )
 
         self.input_window = InputWindow(
@@ -306,7 +315,7 @@ class GameScreen(SignalSender):
             height=1,
             width=MAX_SCREEN_WIDTH - 5,
             border=1,
-            border_color=256,
+            border_color=self.color[INPUT_BORDER_COLOR],
         )
 
         self.draw_lines()
@@ -318,19 +327,19 @@ class GameScreen(SignalSender):
         # Vertical
         _x = TERMINAL_XY_INIT_MAP.x + MAP_WIDTH + HORIZ_PADDING
         for jdx in range(VERT_PADDING, TERMINAL_XY_INIT_MAP.y + MAP_HEIGHT + 1):
-            self.term.addstr(jdx, _x, ASCII_CODES["Vertical"], 512)
+            self.term.addstr(jdx, _x, ASCII_CODES["Vertical"], self.color[LINE_COLOR])
 
         # Horizontal
         _y = TERMINAL_XY_INIT_MAP.y + MAP_HEIGHT + VERT_PADDING
         for idx in range(HORIZ_PADDING, MAX_SCREEN_WIDTH + 1):
-            self.term.addstr(_y, idx, ASCII_CODES["Horizontal"], 512)
+            self.term.addstr(_y, idx, ASCII_CODES["Horizontal"], self.color[LINE_COLOR])
 
         # Crossings
         self.term.addstr(
             TERMINAL_XY_INIT_MAP.y + MAP_HEIGHT + VERT_PADDING,
             TERMINAL_XY_INIT_MAP.x + MAP_WIDTH + HORIZ_PADDING,
             ASCII_CODES["ULR_Crossing"],
-            512,
+            self.color[LINE_COLOR],
         )
 
         # Under Description, horizontal.
@@ -341,6 +350,6 @@ class GameScreen(SignalSender):
             + DESCRIPTION_HEIGHT
         )
         for idx in range(HORIZ_PADDING, MAX_SCREEN_WIDTH + 1):
-            self.term.addstr(_y, idx, ASCII_CODES["Horizontal"], 512)
+            self.term.addstr(_y, idx, ASCII_CODES["Horizontal"], self.color[LINE_COLOR])
 
         self.term.refresh()

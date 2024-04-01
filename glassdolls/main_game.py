@@ -10,6 +10,7 @@ from glassdolls.game.player import PlayerState
 from glassdolls.game.signals import SignalSender
 from glassdolls.utils import Loc
 from glassdolls import logger
+from glassdolls.io.utils import Color
 
 
 @define
@@ -38,20 +39,6 @@ class Game(SignalSender):
 if __name__ == "__main__":
     import time
 
-    def _init_colors() -> dict[str, int]:
-        curses.init_pair(1, curses.COLOR_CYAN, curses.COLOR_BLACK)
-        curses.init_pair(2, curses.COLOR_RED, curses.COLOR_BLACK)
-        curses.init_pair(3, curses.COLOR_RED, curses.COLOR_BLACK)
-
-        color_map = {
-            "WHITE_ON_BLACK": curses.color_pair(0),
-            "CYAN_ON_BLACK": curses.color_pair(1),
-            "RED_ON_BLACK": curses.color_pair(2),
-            "RED_ON_WHITE": curses.color_pair(3),
-        }
-
-        return color_map
-
     def run(term: "curses._CursesWindow") -> None:
 
         #     # input_win = InputWindow(
@@ -70,12 +57,12 @@ if __name__ == "__main__":
 
         # logger.debug(str(_init_colors()))
 
-        _init_colors()
+        color = Color()
         game_text = GameText()
 
         # Initialize Game States, Screen, Input.
         player = PlayerState()
-        game_screen = GameScreen(term=term)
+        game_screen = GameScreen(term=term, color=color)
         game_screen.draw_lines()
         game_screen.options.display()
         user_input = UserInput()
