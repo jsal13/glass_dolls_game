@@ -25,7 +25,7 @@ from glassdolls.constants import (
     DESCRIPTION_HEIGHT,
 )
 
-USER_INPUT_OPTIONS = ["(←↑→↓) Move", "(L)ook", "(U)se", "(I)nventory"]
+USER_INPUT_OPTIONS = "(←↑→↓) Move\n(L)ook\n(U)se\n(I)nventory"
 
 
 USER_COLOR = "hi_purple"
@@ -183,37 +183,6 @@ class MapDisplay(Window, SignalSender):
 
 
 @define
-class OptionsDisplay(Window, SignalSender):
-    _options: list[str] = field(default=USER_INPUT_OPTIONS, repr=False)
-
-    # Signals
-    signal_options_updated: NamedSignal = field(init=False, repr=False)
-
-    def __attrs_post_init__(self) -> None:
-        Window.__attrs_post_init__(self)
-
-        self.signal_options_updated = signal(
-            f"{self.__class__.__name__}_options_updated"
-        )
-
-    @property
-    def options(self) -> list[str]:
-        return self._options
-
-    @options.setter
-    def options(self, value: list[str]) -> None:
-        self._options = value
-        self.send_signal(self.signal_options_updated)
-
-    def display(self) -> None:
-        self.print_at(x=0, y=0, text="OPTIONS", color=265)
-        self.print_at(x=0, y=1, text="=======", color=256)
-        for jdx, option in enumerate(self.options):
-            self.print_at(x=0, y=jdx + 2, text=option, color=0)
-        self.refresh()
-
-
-@define
 class GameText:
     game_text_path: str = field(default=DATA_GAME_DIALOGUE)
     text: dict[str, str | list[str]] = field(repr=False, init=False)
@@ -230,6 +199,8 @@ class GameText:
 class DescriptionDisplay(Window, SignalSender):
     _title: str | None = field(default=None)
     _text: str | None = field(default=None, repr=False)
+    title_color: int = field(default=256)
+    text_color: int = field(default=0)
 
     @property
     def title(self) -> str | None:
@@ -253,12 +224,12 @@ class DescriptionDisplay(Window, SignalSender):
         self.subwindow.clear()
         self.refresh()
         if self.title is not None:
-            self.print_at(x=0, y=0, text=self.title, color=0)
+            self.print_at(x=0, y=0, text=self.title, color=self.title_color)
             self.print_at(
                 x=0,
                 y=1,
                 text="-" * len(self.title) + "\n\n",
-                color=0,
+                color=self.title_color,
             )
 
         if self.text is not None:
@@ -268,7 +239,7 @@ class DescriptionDisplay(Window, SignalSender):
                 initial_indent="",
                 subsequent_indent="",
                 expand_tabs=False,
-                replace_whitespace=True,
+                replace_whitespace=False,
                 fix_sentence_endings=False,
                 break_long_words=True,
                 drop_whitespace=True,
@@ -276,17 +247,14 @@ class DescriptionDisplay(Window, SignalSender):
                 tabsize=4,
                 max_lines=None,
             )
-            for text in wrapped_text:
-                logger.debug(text)
 
             y_offset = 2 if self.title is not None else 0
             for jdx, line in enumerate(wrapped_text):
-                logger.debug(f"on {jdx}, {line}...")
                 self.print_at(
                     x=0,
                     y=jdx + y_offset,
                     text=line,
-                    color=0,
+                    color=self.text_color,
                 )
         self.refresh()
 
@@ -297,7 +265,7 @@ class GameScreen(SignalSender):
 
     term: "curses._CursesWindow" = field(repr=False)
     area_map: MapDisplay = field(init=False, repr=False)
-    options: OptionsDisplay = field(init=False, repr=False)
+    options: DescriptionDisplay = field(init=False, repr=False)
     description: DescriptionDisplay = field(init=False, repr=False)
     input_window: InputWindow = field(init=False, repr=False)
 
@@ -310,9 +278,9 @@ class GameScreen(SignalSender):
             border_color=0,
         )
 
-        self.options = OptionsDisplay(
+        self.options = DescriptionDisplay(
             loc_start=TERMINAL_XY_INIT_MAP + Loc(MAP_WIDTH + (2 * HORIZ_PADDING), 0),
-            height=MAP_HEIGHT + (2 * VERT_PADDING),
+            height=MAP_HEIGHT,
             width=20,
             border=0,
             border_color=0,
@@ -341,9 +309,10 @@ class GameScreen(SignalSender):
             border_color=256,
         )
 
-        self.options.refresh()
         self.draw_lines()
         self.input_window.refresh()
+        self.options.title = "Options"
+        self.options.text = USER_INPUT_OPTIONS
 
     def draw_lines(self) -> None:
         # Vertical
