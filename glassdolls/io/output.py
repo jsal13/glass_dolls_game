@@ -1,11 +1,11 @@
+import textwrap
 import json
 import curses
-from typing import Any, Sequence
+from typing import Any
 from copy import deepcopy
 
 from attrs import define, field
 
-from glassdolls import logger
 from glassdolls.utils import Loc
 from glassdolls.game.signals import SignalSender
 from glassdolls.game.maps import Map
@@ -207,13 +207,13 @@ class OptionsDisplay(Window, SignalSender):
 @define
 class GameText:
     game_text_path: str = field(default=DATA_GAME_DIALOGUE)
-    text: dict[str, Any] = field(repr=False, init=False)
+    text: dict[str, str | list[str]] = field(repr=False, init=False)
 
     def __attrs_post_init__(self) -> None:
         with open(self.game_text_path, "r", encoding="utf-8") as f:
             self.text = json.load(f)
 
-    def __getitem__(self, key: str) -> list[str]:
+    def __getitem__(self, key: str) -> str | list[str]:
         return self.text[key]
 
 
@@ -241,45 +241,45 @@ class DescriptionDisplay(Window, SignalSender):
         self.display()
 
     def display(self) -> None:
-        x_start = 1 if self.border else 0
-        y_start = 1 if self.border else 0
-        input_width = self.width - (2 * self.border)
-
+        self.subwindow.clear()
+        self.refresh()
         if self.title is not None:
-            self.print_at(x=x_start, y=y_start, text=self.title, color=0)
+            self.print_at(x=0, y=0, text=self.title, color=0)
             self.print_at(
-                x=x_start,
-                y=y_start + 1,
+                x=0,
+                y=1,
                 text="-" * len(self.title) + "\n\n",
                 color=0,
             )
 
+        if self.text is not None:
+            wrapped_text = textwrap.wrap(
+                self.text,
+                width=MAX_SCREEN_WIDTH - 5,
+                initial_indent="",
+                subsequent_indent="",
+                expand_tabs=False,
+                replace_whitespace=True,
+                fix_sentence_endings=False,
+                break_long_words=True,
+                drop_whitespace=True,
+                break_on_hyphens=True,
+                tabsize=4,
+                max_lines=None,
+            )
+            for text in wrapped_text:
+                logger.debug(text)
+
+            y_offset = 2 if self.title is not None else 0
+            for jdx, line in enumerate(wrapped_text):
+                logger.debug(f"on {jdx}, {line}...")
+                self.print_at(
+                    x=0,
+                    y=jdx + y_offset,
+                    text=line,
+                    color=0,
+                )
         self.refresh()
-
-        # if self.text is not None:
-        #     text_list = self.text.split("\n")
-        #     y_offset = 2 if self.title is not None else 0
-        #     for line in text_list:
-        #         line_wrap_list = self.term.wrap(line, width=80)
-
-        #         # If the line wraps, keep the text padded.
-        #         line_wrap_list_indented = [
-        #             (
-        #                 (" " * (HORIZ_PADDING + 1)) + line_wrap_list[idx]
-        #                 if idx > 0
-        #                 else line_wrap_list[idx]
-        #             )
-        #             for idx in range(len(line_wrap_list))
-        #         ]
-
-        #         self.print_at(
-        #             x=x,
-        #             y=y + y_offset,
-        #             text="\n".join(line_wrap_list_indented) + "\n\n",
-        #             color=DESC_TEXT_COLOR,
-        #         )
-
-        #         y_offset += len(line_wrap_list) + 2
 
 
 @define
@@ -311,7 +311,7 @@ class GameScreen(SignalSender):
 
         self.description = DescriptionDisplay(
             loc_start=TERMINAL_XY_INIT_MAP + Loc(0, MAP_WIDTH + (2 * VERT_PADDING)),
-            height=5,
+            height=DESCRIPTION_HEIGHT,
             width=MAX_SCREEN_WIDTH,
             border=0,
             border_color=0,

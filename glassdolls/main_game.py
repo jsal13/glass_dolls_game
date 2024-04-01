@@ -89,7 +89,12 @@ if __name__ == "__main__":
         player.loc = Loc(2, 2)
 
         game_screen.description.title = "Hello!"
-        game_screen.description.text = game_text.text["introduction_0"]
+        # SIGNALS LATER.
+        for line in game_text.text["introduction"]:
+            game_screen.description.text = line
+            continue_key = None
+            while continue_key is None:
+                continue_key = game.user_input.wait_for_key()
 
         usr_input = game_screen.input_window.create_user_input()
 

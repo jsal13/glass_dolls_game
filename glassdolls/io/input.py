@@ -30,7 +30,7 @@ class UserInput(SignalSender):
             f"{self.__class__.__name__}_player_input_movement"
         )
 
-    def wait_for_key(self) -> None:
+    def wait_for_key(self) -> str:
         while True:
             val: str = self.subwindow.getkey()
 
@@ -39,6 +39,7 @@ class UserInput(SignalSender):
 
         logger.debug(f"USER INPUT: {val}")
         self.triage_user_input(key_value=val)
+        return val
 
     def triage_user_input(self, key_value: str) -> None:
         logger.debug(f"WE GOT {key_value}.")
