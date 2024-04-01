@@ -24,6 +24,8 @@ class UserInput(SignalSender):
             0,
             0,
         )
+        # REF: https://docs.python.org/3/library/curses.html#curses.window.keypad
+        self.subwindow.keypad(True)
 
         self.signal_user_input = signal(f"{self.__class__.__name__}_user_input")
         self.signal_player_input_movement = signal(
@@ -44,12 +46,7 @@ class UserInput(SignalSender):
     def triage_user_input(self, key_value: str) -> None:
         logger.debug(f"WE GOT {key_value}.")
         upper_key_value = key_value.upper()
-        if upper_key_value in [
-            "J",
-            "K",
-            "L",
-            "I",
-        ]:  # ["KEY_LEFT", "KEY_RIGHT", "KEY_DOWN", "KEY_UP"]:
+        if upper_key_value in USER_MOVEMENT:
             player_movement = USER_MOVEMENT[key_value]
             self.send_signal(
                 self.signal_player_input_movement, data={"direction": player_movement}
