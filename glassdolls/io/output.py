@@ -94,7 +94,17 @@ class InputWindow(Window):
 
     cursor: str | None = field(default=">")
 
+    def __attrs_post_init__(self) -> None:
+        Window.__attrs_post_init__(self)
+        self.clear_window()
+
+    def clear_window(self) -> None:
+        self.subwindow.clear()  # Removes the border.
+        self.subwindow.refresh()
+
     def create_user_input(self) -> str:
+        self.draw_border()
+
         curses.echo()
         x_start = 1 if self.border else 0
         y_start = 1 if self.border else 0
@@ -110,8 +120,7 @@ class InputWindow(Window):
         msg = self.subwindow.getstr(y_start, x_input_start, input_width).decode(
             encoding="utf-8"
         )
-        self.subwindow.clear()
-        self.subwindow.refresh()
+        self.clear_window()
 
         curses.noecho()
         return msg

@@ -56,7 +56,6 @@ classifiers = [
 dependencies = [
     "attrs~=23.2",
     "beautifulsoup4~=4.12",
-    "blessed~=1.20",
     "faker~=24.1",
     "ipykernel~=6.29",
     "lxml~=5.1",

@@ -44,7 +44,6 @@ class UserInput(SignalSender):
         return val
 
     def triage_user_input(self, key_value: str) -> None:
-        logger.debug(f"WE GOT {key_value}.")
         upper_key_value = key_value.upper()
         if upper_key_value in USER_MOVEMENT:
             player_movement = USER_MOVEMENT[key_value]
