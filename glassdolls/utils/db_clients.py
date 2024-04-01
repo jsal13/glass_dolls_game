@@ -11,14 +11,16 @@ from glassdolls.constants import MONGO_CONNECTION_STRING, PG_CONNECTION_STRING
 # TODO: localhost for outside of docker, db-mongo for inside.
 
 
-DB_Client: TypeAlias = MongoClient[dict[str, Any]] | psycopg.Connection[tuple[Any, ...]]
+_DB_Client: TypeAlias = (
+    MongoClient[dict[str, Any]] | psycopg.Connection[tuple[Any, ...]]
+)
 
 
 class DBClient(ABC):
     """Base Helper Client for DBs."""
 
     def __init__(self, db: str | None = "glassdolls") -> None:
-        self.client: DB_Client | None = None
+        self.client: _DB_Client | None = None
         self.db = db
 
     @abstractmethod

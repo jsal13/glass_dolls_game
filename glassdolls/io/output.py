@@ -5,7 +5,7 @@ from copy import deepcopy
 from attrs import define, field
 
 from glassdolls import logger
-from glassdolls.utils.game_utils import Loc
+from glassdolls.utils import Loc
 from glassdolls.constants import ASCII_CODES
 from glassdolls.io.input import UserInput
 from glassdolls.game.signals import SignalSender
@@ -21,7 +21,7 @@ from glassdolls.constants import (
     MAX_SCREEN_WIDTH,
     TERMINAL_XY_INIT_MAP,
     VERT_PADDING,
-    MAPS_DUNGEON_LEVEL_0_TXT,
+    MAP_DUNGEON_LEVEL_0_TXT,
 )
 
 USER_INPUT_OPTIONS = ["(←↑→↓) Move", "(L)ook", "(U)se", "(I)nventory"]

@@ -3,7 +3,7 @@
 
 # from attrs import define, field
 
-# from glassdolls.constants import MAPS_DUNGEON_LEVEL_0_TXT, MAPS_LEGEND_JSON
+# from glassdolls.constants import MAP_DUNGEON_LEVEL_0_TXT, MAP_LEGEND_JSON
 # from glassdolls.game.utils import Loc
 
 
@@ -18,8 +18,8 @@
 
 # DIR_MAP = {"w": Loc(0, -1), "e": Loc(0, 1), "n": Loc(1, 0), "s": Loc(0, 1)}
 
-# with (open(MAPS_LEGEND_JSON, "r", encoding="utf-8") as maps_legend_json,):
-#     MAPS_LEGEND = json.load(maps_legend_json)
+# with (open(MAP_LEGEND_JSON, "r", encoding="utf-8") as MAP_LEGEND_json,):
+#     MAP_LEGEND = json.load(MAP_LEGEND_json)
 
 # # What does a map look like?
 # # {
@@ -45,8 +45,8 @@
 
 #     def _generate_fog_of_war_maps(self) -> None:
 #         # TODO: Yuck.
-#         PLAYER_SYMBOL: str = MAPS_LEGEND["dungeon"]["player"]
-#         FOG_SYMBOL: str = MAPS_LEGEND["dungeon"]["unexplored"]
+#         PLAYER_SYMBOL: str = MAP_LEGEND["dungeon"]["player"]
+#         FOG_SYMBOL: str = MAP_LEGEND["dungeon"]["unexplored"]
 #         for area in self.maps.keys():
 #             _area: list[list[str]] = []
 #             # print(area, self.maps[area]["revealed"])
@@ -92,7 +92,7 @@
 # GAME_AREAS = GameAreas()
 
 # with (
-#     open(MAPS_DUNGEON_LEVEL_0_TXT, "r", encoding="utf-8") as maps_dungeon_level_0_txt,
+#     open(MAP_DUNGEON_LEVEL_0_TXT, "r", encoding="utf-8") as MAP_DUNGEON_LEVEL_0_TXT,
 # ):
 
 #     GAME_AREAS.dungeons["Start"] = Dungeon(
@@ -100,7 +100,7 @@
 #         maps={
 #             "0": {
 #                 "revealed": [
-#                     list(row.strip()) for row in maps_dungeon_level_0_txt.readlines()
+#                     list(row.strip()) for row in MAP_DUNGEON_LEVEL_0_TXT.readlines()
 #                 ]
 #             }
 #         },

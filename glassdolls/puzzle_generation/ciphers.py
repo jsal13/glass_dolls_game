@@ -1,10 +1,7 @@
 import string
-from typing import TypeAlias
 
 import numpy as np
-
-TranslationTable: TypeAlias = dict[int, str]
-TranslationTableStrKey: TypeAlias = dict[str, str]
+from glassdolls._types import TranslationTable, TranslationTableStrKey
 
 
 def cesaer_cipher(text: str, shift_amount: int = 1) -> str:

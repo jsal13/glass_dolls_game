@@ -4,7 +4,7 @@ from attrs import define, field
 from blinker import NamedSignal, signal
 
 from glassdolls.game.signals import SignalSender
-from glassdolls.utils.game_utils import Loc
+from glassdolls.utils import Loc
 
 
 @define

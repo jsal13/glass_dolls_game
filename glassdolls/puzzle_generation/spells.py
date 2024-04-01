@@ -1,8 +1,8 @@
 import json
-from typing import TypeAlias
 
 import numpy as np
 
+from glassdolls._types import SpellChantList, SyllableList
 from glassdolls.constants import DATA_SPELLS_FILE_LOC, DATA_SYLLABLE_FILE_LOC
 
 with (
@@ -13,10 +13,6 @@ with (
     VOWELS = syllables["vowels"]
     NONVOWELS = syllables["nonvowels"]
     SPELL_LIST = json.load(spell_json)
-
-
-SyllableList: TypeAlias = list[str]
-SpellChantList: TypeAlias = dict[str, str]
 
 
 def generate_random_syllables(

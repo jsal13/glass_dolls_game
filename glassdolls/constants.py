@@ -1,10 +1,12 @@
 import os
-
+import json
 import dotenv
 
-from glassdolls.utils.game_utils import Loc
+from glassdolls._types import MapTiles
+from glassdolls.utils import Loc
 
 dotenv.load_dotenv()
+
 
 # GENERAL DATA
 DATA_DIR = os.getenv("DATA_DIR", "data")
@@ -21,11 +23,22 @@ DATA_RANDOM_PHRASE_EN_XML: str = os.getenv(
 DATA_GAME_DIALOGUE: str = os.getenv("DATA_GAME_DIALOGUE", "data/game_text.json")
 
 # MAPS
-MAPS_DIR = os.getenv("MAPS_DIR", "data/maps")
-MAPS_LEGEND_JSON = os.getenv("MAPS_LEGEND_JSON", f"{MAPS_DIR}/map_legend.json")
-MAPS_DUNGEON_LEVEL_0_TXT = os.getenv(
-    "MAPS_DUNGEON_LEVEL_0_TXT", f"{MAPS_DIR}/dungeon_level_0.txt"
+MAP_DIR = os.getenv("MAP_DIR", "data/maps")
+MAP_LEGEND_JSON_FILE = os.getenv("MAP_LEGEND_JSON", f"{MAP_DIR}/map_legend.json")
+
+with open(MAP_LEGEND_JSON_FILE, "r", encoding="utf-8") as map_legend_json:
+    MAP_LEGEND_JSON: dict[str, dict[str, str]] = json.load(map_legend_json)
+
+# How do we do typehints on this stuff from, say, the map file?
+MAP_DUNGEON_LEVEL_0_TXT_FILE = os.getenv(
+    "MAP_DUNGEON_LEVEL_0_TXT", f"{MAP_DIR}/dungeon_level_0.txt"
 )
+
+with open(MAP_DUNGEON_LEVEL_0_TXT_FILE, "r", encoding="utf-8") as dungeon_level_0:
+    MAP_DUNGEON_LEVEL_0_TXT: MapTiles = [
+        list(row) for row in dungeon_level_0.readlines()
+    ]
+
 
 # DB
 MONGO_CONNECTION_STRING: str = os.getenv(
