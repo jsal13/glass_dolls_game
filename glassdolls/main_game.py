@@ -3,26 +3,13 @@ import curses
 from attrs import define, field
 from blinker import NamedSignal, signal
 
-from glassdolls.constants import DATA_GAME_DIALOGUE, MAPS_DUNGEON_LEVEL_0_TXT
+from glassdolls.constants import MAPS_DUNGEON_LEVEL_0_TXT
 from glassdolls.io.input import UserInput
 from glassdolls.io.output import GameScreen
 from glassdolls.game.player import PlayerState
 from glassdolls.game.signals import SignalSender
-from glassdolls.utils.game_utils import Loc
+from glassdolls.utils.game_utils import Loc, GameText
 from glassdolls import logger
-
-#     # input_win = InputWindow(
-#     #     loc_start=Loc(10, 10),
-#     #     height=1,
-#     #     width=30,
-#     #     cursor=">",
-#     #     border_color=COLOR_MAP["CYAN_ON_BLACK"],
-#     # )
-#     # msg = input_win.create_user_input()
-
-# if __name__ == "__main__":
-#     # curses.wrapper rapper calls "noecho, cbreak, keypad=True" on call.
-#     curses.wrapper(main_display)
 
 
 @define
@@ -49,40 +36,44 @@ class Game(SignalSender):
 
 
 if __name__ == "__main__":
-
     import time
-    import json
+
+    def _init_colors() -> dict[str, int]:
+        curses.init_pair(1, curses.COLOR_CYAN, curses.COLOR_BLACK)
+        curses.init_pair(2, curses.COLOR_RED, curses.COLOR_BLACK)
+        curses.init_pair(3, curses.COLOR_RED, curses.COLOR_BLACK)
+
+        color_map = {
+            "WHITE_ON_BLACK": curses.color_pair(0),
+            "CYAN_ON_BLACK": curses.color_pair(1),
+            "RED_ON_BLACK": curses.color_pair(2),
+            "RED_ON_WHITE": curses.color_pair(3),
+        }
+
+        return color_map
 
     def run(term: "curses._CursesWindow") -> None:
-        with (
-            open(MAPS_DUNGEON_LEVEL_0_TXT, "r") as f,
-            open(DATA_GAME_DIALOGUE, "r") as g,
-        ):
 
-            dungeon_map = list(list(line) for line in f.readlines())
-            game_text = json.load(g)
+        #     # input_win = InputWindow(
 
-        def init_colors() -> dict[str, int]:
-            curses.init_pair(1, curses.COLOR_CYAN, curses.COLOR_BLACK)
-            curses.init_pair(2, curses.COLOR_RED, curses.COLOR_BLACK)
-            curses.init_pair(3, curses.COLOR_RED, curses.COLOR_BLACK)
+        #     #     loc_start=Loc(10, 10),
+        #     #     height=1,
+        #     #     width=30,
+        #     #     cursor=">",
+        #     #     border_color=COLOR_MAP["CYAN_ON_BLACK"],
+        #     # )
+        #     # msg = input_win.create_user_input()
 
-            color_map = {
-                "WHITE_ON_BLACK": curses.color_pair(0),
-                "CYAN_ON_BLACK": curses.color_pair(1),
-                "RED_ON_BLACK": curses.color_pair(2),
-                "RED_ON_WHITE": curses.color_pair(3),
-            }
+        # if __name__ == "__main__":
+        #     # curses.wrapper rapper calls "noecho, cbreak, keypad=True" on call.
+        #     curses.wrapper(main_display)
 
-            return color_map
-
-        logger.debug(str(init_colors()))
+        logger.debug(str(_init_colors()))
 
         # Initialize Game States, Screen, Input.
         player = PlayerState()
         game_screen = GameScreen(term=term)
         game_screen.draw_lines()
-        game_screen.area_map.display(map_ascii=dungeon_map)
 
         user_input = UserInput(term=term)
 
@@ -98,6 +89,7 @@ if __name__ == "__main__":
         # game_screen.description.text = game_text["introduction_0"]
         # game_screen.refresh_display()
 
+        # time.sleep(2)
         # Start the Game Stuff.
         while True:
             game.user_input.wait_for_key()

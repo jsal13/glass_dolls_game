@@ -9,6 +9,7 @@ from glassdolls.utils.game_utils import Loc
 from glassdolls.constants import ASCII_CODES
 from glassdolls.io.input import UserInput
 from glassdolls.game.signals import SignalSender
+from glassdolls.game.maps import Map
 
 from blinker import NamedSignal, signal
 
@@ -115,21 +116,28 @@ class InputWindow(Window):
 @define
 class MapDisplay(Window, SignalSender):
     player_map_loc: Loc = field(init=False, default=Loc(0, 0))
-    current_map: list[list[str]] | None = field(init=False, repr=False, default=None)
+    _current_map: Map = field(init=False, repr=False, default=Map())
 
     def __attrs_post_init__(self) -> None:
         Window.__attrs_post_init__(self)
         curses.curs_set(0)
 
-    def display(self, map_ascii: list[list[str]] | None = None) -> None:
+    @property
+    def current_map(self) -> Map:
+        return self._current_map
+
+    @current_map.setter
+    def current_map(self, value: Map) -> None:
+        self._current_map = value
+        self.display()
+
+    def display(self) -> None:
         self.subwindow.erase()
-        if map_ascii is not None:
-            self.current_map = map_ascii
 
         if self.current_map is None:
             raise ValueError("Must initialize map in MapDisplay.")
 
-        for jdx, row in enumerate(self.current_map):
+        for jdx, row in enumerate(self.current_map.map_tiles):
             self.print_at(
                 x=0,
                 y=jdx,
