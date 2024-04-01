@@ -59,40 +59,11 @@ DIFFICULTY_RANK = {
     },
 }
 
-# COLORS
-# Ref: https://en.wikipedia.org/wiki/ANSI_escape_code#Colors
-# COLOR_TO_ANSI = {
-#     "black": 0,
-#     "red": 1,
-#     "green": 2,
-#     "yellow": 3,
-#     "blue": 4,
-#     "purple": 5,
-#     "cyan": 6,
-#     "white": 7,
-#     "hi_black": 8,
-#     "hi_red": 9,
-#     "hi_green": 10,
-#     "hi_yellow": 11,
-#     "hi_blue": 12,
-#     "hi_purple": 13,
-#     "hi_cyan": 14,
-#     "hi_white": 15,
-# }
-
-# USER_COLOR = "hi_purple"
-# DESC_TITLE_COLOR = "cyan"
-# DESC_TEXT_COLOR = "white"
-# OPTIONS_TITLE_COLOR = "cyan"
-# OPTIONS_TEXT_COLOR = "white"
-# LINE_COLOR = "hi_red"
-# DUNGEON_WALL_COLOR = "white"
-
 # DISPLAY CONSTANTS
 HORIZ_PADDING = 2
 VERT_PADDING = 1
 MAX_SCREEN_WIDTH = 80
-MAP_WIDTH = 16
+MAP_WIDTH = 32
 MAP_HEIGHT = 16
 DESCRIPTION_HEIGHT = 10
 TERMINAL_XY_INIT_MAP = Loc(1 + HORIZ_PADDING, 1 + VERT_PADDING)  # Upper-left.
