@@ -1,81 +1,146 @@
+import curses
 from typing import Any, Sequence
 from copy import deepcopy
 
 from attrs import define, field
-from blessed import Terminal
-from blessed.keyboard import Keystroke
+
+from glassdolls import logger
+from glassdolls.utils.game_utils import Loc
+from glassdolls.constants import ASCII_CODES
+from glassdolls.io.input import UserInput
+from glassdolls.game.signals import SignalSender
+
 from blinker import NamedSignal, signal
 
-from glassdolls.io import logger
+from glassdolls import logger
 from glassdolls.constants import (
-    ASCII_CODES,
-    DESC_TEXT_COLOR,
-    DESC_TITLE_COLOR,
-    DUNGEON_WALL_COLOR,
     HORIZ_PADDING,
-    LINE_COLOR,
     MAP_HEIGHT,
     MAP_WIDTH,
     MAX_SCREEN_WIDTH,
-    OPTIONS_TEXT_COLOR,
-    OPTIONS_TITLE_COLOR,
     TERMINAL_XY_INIT_MAP,
-    USER_COLOR,
     VERT_PADDING,
-    COLOR_TO_ANSI,
+    MAPS_DUNGEON_LEVEL_0_TXT,
 )
-from glassdolls.io.signals import SignalSender
-from glassdolls.io.utils import Loc
 
 USER_INPUT_OPTIONS = ["(←↑→↓) Move", "(L)ook", "(U)se", "(I)nventory"]
 
 
-@define
-class TerminalPrinter:
-    term: Terminal
-
-    def print_at(self, x: int, y: int, text: str, color: str = "white") -> None:
-
-        ansi_code = COLOR_TO_ANSI.get(color)
-        if ansi_code is None:
-            raise ValueError(
-                f"Color {color} is not a valid color.\nPlease choose one of: `{'`, `'.join(COLOR_TO_ANSI.keys())}`."
-            )
-
-        color_text = self.term.setaf(ansi_code) + text
-        print(self.term.move_xy(x=x, y=y) + color_text, end="")
+USER_COLOR = "hi_purple"
+DESC_TITLE_COLOR = "cyan"
+DESC_TEXT_COLOR = "white"
+OPTIONS_TITLE_COLOR = "cyan"
+OPTIONS_TEXT_COLOR = "white"
+LINE_COLOR = "hi_red"
+DUNGEON_WALL_COLOR = "white"
 
 
 @define
-class MapDisplay(TerminalPrinter, SignalSender):
-    term: Terminal
-    map_ascii: list[list[str]] = field(repr=False)
+class Window:
+    loc_start: Loc = field(default=Loc(1, 1))
+    height: int = field(default=1)
+    width: int = field(default=30)
+    border: int = field(default=1)
+    border_color: int = field(default=0)
+    subwindow: "curses._CursesWindow" = field(init=False, repr=False)
+
+    def __attrs_post_init__(self) -> None:
+        self.subwindow = curses.newwin(
+            self.height + (2 * self.border),
+            self.width + (2 * self.border),
+            self.loc_start.y,
+            self.loc_start.x,
+        )
+        if self.border == 1:
+            self.draw_border()
+
+    def draw_border(self) -> None:
+        height, width = self.subwindow.getmaxyx()
+
+        for idx in range(0, width - 1):
+            self.print_at(idx, 0, ASCII_CODES["Horizontal"], self.border_color)
+            self.print_at(idx, height - 1, ASCII_CODES["Horizontal"], self.border_color)
+
+        for jdx in range(0, height - 1):
+            self.print_at(0, jdx, ASCII_CODES["Vertical"], self.border_color)
+            self.print_at(width - 1, jdx, ASCII_CODES["Vertical"], self.border_color)
+
+        self.print_at(0, 0, ASCII_CODES["UL_Corner"], self.border_color)
+        self.print_at(width - 1, 0, ASCII_CODES["UR_Corner"], self.border_color)
+        self.print_at(0, height - 1, ASCII_CODES["BL_Corner"], self.border_color)
+        self.print_at(
+            width - 1, height - 1, ASCII_CODES["BR_Corner"], self.border_color
+        )
+
+    def print_at(self, x: int, y: int, text: str, color: int = 0) -> None:
+        # Color is the color pair number.
+
+        # Why do we get an error here, and why do we ignore it?
+        # SO: https://stackoverflow.com/a/41923640
+        # Ref: https://docs.python.org/3/library/curses.html#curses.window.addstr
+        try:
+            self.subwindow.addstr(y, x, text, color)
+        except curses.error:
+            pass
+
+    def refresh(self) -> None:
+        self.subwindow.refresh()
+
+
+@define
+class InputWindow(Window):
+
+    cursor: str | None = field(default=">")
+
+    def create_user_input(self) -> str:
+        curses.echo()
+        x_start = 1 if self.border else 0
+        y_start = 1 if self.border else 0
+
+        x_input_start = x_start + 1
+        input_width = self.width - (2 * self.border)
+
+        if self.cursor:
+            self.subwindow.addch(y_start, x_start + 1, ">")
+            x_input_start += 2
+            input_width -= 2
+
+        msg = self.subwindow.getstr(y_start, x_input_start, input_width).decode(
+            encoding="utf-8"
+        )
+        curses.noecho()
+        return msg
+
+
+@define
+class MapDisplay(Window, SignalSender):
     player_map_loc: Loc = field(init=False, default=Loc(0, 0))
-    x_map_start: int = field(default=TERMINAL_XY_INIT_MAP.x, repr=False)
-    y_map_start: int = field(default=TERMINAL_XY_INIT_MAP.y, repr=False)
 
     # Signals
     signal_player_map_loc_updated: NamedSignal = field(init=False, repr=False)
 
     def __attrs_post_init__(self) -> None:
+        Window.__attrs_post_init__(self)
+
         self.signal_player_map_loc_updated = signal(
             f"{self.__class__.__name__}_player_map_loc_updated"
         )
 
-    def display(self) -> None:
-        for jdx, row in enumerate(self.map_ascii):
+    def display(self, map_ascii: list[list[str]]) -> None:
+        for jdx, row in enumerate(map_ascii):
             self.print_at(
-                x=self.x_map_start,
-                y=self.y_map_start + jdx,
+                x=0,
+                y=jdx,
                 text="".join(row),
-                color=DUNGEON_WALL_COLOR,
+                color=0,
             )
         self.print_at(
-            x=self.x_map_start + self.player_map_loc.x,
-            y=self.y_map_start + self.player_map_loc.y,
+            x=self.player_map_loc.x,
+            y=self.player_map_loc.y,
             text="@",
-            color=USER_COLOR,
+            color=256,
         )
+        self.refresh()
 
     def update_player_loc(self, previous_loc: Loc) -> None:
         self.send_signal(self.signal_player_map_loc_updated, data=None)
@@ -98,14 +163,15 @@ class MapDisplay(TerminalPrinter, SignalSender):
 
 
 @define
-class OptionsDisplay(TerminalPrinter, SignalSender):
-    term: Terminal
+class OptionsDisplay(Window, SignalSender):
     _options: list[str] = field(default=USER_INPUT_OPTIONS, repr=False)
 
     # Signals
     signal_options_updated: NamedSignal = field(init=False, repr=False)
 
     def __attrs_post_init__(self) -> None:
+        Window.__attrs_post_init__(self)
+
         self.signal_options_updated = signal(
             f"{self.__class__.__name__}_options_updated"
         )
@@ -124,18 +190,32 @@ class OptionsDisplay(TerminalPrinter, SignalSender):
         x: int,
         y: int,
     ) -> None:
-        self.print_at(x=x, y=y, text="OPTIONS", color=OPTIONS_TITLE_COLOR)
-        self.print_at(x=x, y=y + 1, text="=======", color=OPTIONS_TITLE_COLOR)
+        self.print_at(x=x, y=y, text="OPTIONS", color=265)
+        self.print_at(x=x, y=y + 1, text="=======", color=256)
         for jdx, option in enumerate(self.options):
-            self.print_at(x=x, y=y + jdx + 2, text=option, color=OPTIONS_TEXT_COLOR)
+            self.print_at(x=x, y=y + jdx + 2, text=option, color=0)
 
         for jdx in range((MAP_HEIGHT + VERT_PADDING) - len(self.options)):
             print()
 
 
 @define
-class DescriptionDisplay(TerminalPrinter, SignalSender):
-    term: Terminal
+class LineDisplay(Window, SignalSender):
+
+    def vertical(self, x: int, y_min: int, y_max: int) -> None:
+        for jdx in range(y_min, y_max + 1):
+            self.print_at(x=x, y=jdx, text=ASCII_CODES["Vertical"], color=0)
+
+    def horizontal(self, y: int, x_min: int, x_max: int) -> None:
+        for idx in range(x_min, x_max + 1):
+            self.print_at(x=idx, y=y, text=ASCII_CODES["Horizontal"], color=0)
+
+    def crossing(self, x: int, y: int) -> None:
+        self.print_at(x=x, y=y, text=ASCII_CODES["ULR_Crossing"], color=0)
+
+
+@define
+class DescriptionDisplay(Window, SignalSender):
     _title: str | None = field(default=None)
     _text: str | None = field(default=None, repr=False)
 
@@ -167,125 +247,156 @@ class DescriptionDisplay(TerminalPrinter, SignalSender):
 
     def display(self, x: int, y: int) -> None:
         if self.title is not None:
-            self.print_at(x=x, y=y, text=self.title, color=DESC_TITLE_COLOR)
+            self.print_at(x=x, y=y, text=self.title, color=0)
             self.print_at(
                 x=x,
                 y=y + 1,
                 text="-" * len(self.title) + "\n\n",
-                color=DESC_TITLE_COLOR,
+                color=0,
             )
 
-        if self.text is not None:
-            text_list = self.text.split("\n")
-            y_offset = 2 if self.title is not None else 0
-            for line in text_list:
-                line_wrap_list = self.term.wrap(line, width=80)
+        # if self.text is not None:
+        #     text_list = self.text.split("\n")
+        #     y_offset = 2 if self.title is not None else 0
+        #     for line in text_list:
+        #         line_wrap_list = self.term.wrap(line, width=80)
 
-                # If the line wraps, keep the text padded.
-                line_wrap_list_indented = [
-                    (
-                        (" " * (HORIZ_PADDING + 1)) + line_wrap_list[idx]
-                        if idx > 0
-                        else line_wrap_list[idx]
-                    )
-                    for idx in range(len(line_wrap_list))
-                ]
+        #         # If the line wraps, keep the text padded.
+        #         line_wrap_list_indented = [
+        #             (
+        #                 (" " * (HORIZ_PADDING + 1)) + line_wrap_list[idx]
+        #                 if idx > 0
+        #                 else line_wrap_list[idx]
+        #             )
+        #             for idx in range(len(line_wrap_list))
+        #         ]
 
-                self.print_at(
-                    x=x,
-                    y=y + y_offset,
-                    text="\n".join(line_wrap_list_indented) + "\n\n",
-                    color=DESC_TEXT_COLOR,
-                )
+        #         self.print_at(
+        #             x=x,
+        #             y=y + y_offset,
+        #             text="\n".join(line_wrap_list_indented) + "\n\n",
+        #             color=DESC_TEXT_COLOR,
+        #         )
 
-                y_offset += len(line_wrap_list) + 2
-
-
-@define
-class LineDisplay(TerminalPrinter, SignalSender):
-
-    def vertical(self, x: int, y_min: int, y_max: int) -> None:
-        for jdx in range(y_min, y_max + 1):
-            self.print_at(x=x, y=jdx, text=ASCII_CODES["Vertical"], color=LINE_COLOR)
-
-    def horizontal(self, y: int, x_min: int, x_max: int) -> None:
-        for idx in range(x_min, x_max + 1):
-            self.print_at(x=idx, y=y, text=ASCII_CODES["Horizontal"], color=LINE_COLOR)
-
-    def crossing(self, x: int, y: int) -> None:
-        self.print_at(
-            x=x, y=y, text=ASCII_CODES["Up_Left_Right_Crossing"], color=LINE_COLOR
-        )
+        #         y_offset += len(line_wrap_list) + 2
 
 
 @define
 class GameScreen(SignalSender):
     """Combines the Display elements into a full game screen."""
 
-    term: Terminal = field(repr=False)
+    term: "curses._CursesWindow" = field(repr=False)
     area_map: MapDisplay = field(init=False, repr=False)
-    options: OptionsDisplay = field(init=False, repr=False)
-    line: LineDisplay = field(init=False, repr=False)
-    description: DescriptionDisplay = field(init=False, repr=False)
+    # options: OptionsDisplay = field(init=False, repr=False)
+    # line: LineDisplay = field(init=False, repr=False)
+    # description: DescriptionDisplay = field(init=False, repr=False)
     # Signals.
     signal_user_input: NamedSignal = field(init=False, repr=False)
 
     def __attrs_post_init__(self) -> None:
         # Initialize the stuff.
         self.area_map = MapDisplay(
-            term=self.term, map_ascii=[["." for _ in range(16)] for _ in range(16)]
+            loc_start=Loc(1, 1),
+            height=16,
+            width=16,
+            border=0,
+            border_color=0,
         )
-        self.options = OptionsDisplay(term=self.term)
-        self.line = LineDisplay(term=self.term)
-        self.description = DescriptionDisplay(term=self.term)
+        # self.options = OptionsDisplay(term=self.term)
+        # self.line = LineDisplay()
+        # self.description = DescriptionDisplay(term=self.term)
 
         self.signal_user_input = signal(f"{self.__class__.__name__}_user_input")
 
         # Subscribe to Signals.
-        self.description.signal_title_updated.connect(self.handle_display_updates)
-        self.description.signal_text_updated.connect(self.handle_display_updates)
+        # self.description.signal_title_updated.connect(self.handle_display_updates)
+        # self.description.signal_text_updated.connect(self.handle_display_updates)
         self.area_map.signal_player_map_loc_updated.connect(
             self.handle_player_map_loc_updated
         )
 
-    def _refresh_screen(self) -> None:
-        print(f"{self.term.home}{self.term.clear}")
+    # def _refresh_screen(self) -> None:
+    #     print(f"{self.term.home}{self.term.clear}")
 
-    def refresh_display(self) -> None:
-        self._refresh_screen()
-        self.line.vertical(
-            x=TERMINAL_XY_INIT_MAP.x + MAP_WIDTH + HORIZ_PADDING,
-            y_min=VERT_PADDING,
-            y_max=TERMINAL_XY_INIT_MAP.y + MAP_HEIGHT + VERT_PADDING,
-        )
-        self.line.horizontal(
-            y=TERMINAL_XY_INIT_MAP.y + MAP_HEIGHT + VERT_PADDING,
-            x_min=HORIZ_PADDING,
-            x_max=MAX_SCREEN_WIDTH - HORIZ_PADDING,
-        )
-        self.line.crossing(
-            x=TERMINAL_XY_INIT_MAP.x + MAP_WIDTH + HORIZ_PADDING,
-            y=TERMINAL_XY_INIT_MAP.y + MAP_HEIGHT + VERT_PADDING,
-        )
-        self.area_map.display()
+    # def refresh_display(self) -> None:
+    #     self.line.vertical(
+    #         x=TERMINAL_XY_INIT_MAP.x + MAP_WIDTH + HORIZ_PADDING,
+    #         y_min=VERT_PADDING,
+    #         y_max=TERMINAL_XY_INIT_MAP.y + MAP_HEIGHT + VERT_PADDING,
+    #     )
+    #     self.line.horizontal(
+    #         y=TERMINAL_XY_INIT_MAP.y + MAP_HEIGHT + VERT_PADDING,
+    #         x_min=HORIZ_PADDING,
+    #         x_max=MAX_SCREEN_WIDTH - HORIZ_PADDING,
+    #     )
+    #     self.line.crossing(
+    #         x=TERMINAL_XY_INIT_MAP.x + MAP_WIDTH + HORIZ_PADDING,
+    #         y=TERMINAL_XY_INIT_MAP.y + MAP_HEIGHT + VERT_PADDING,
+    #     )
+    #     self.area_map.display()
 
-        self.options.display(
-            x=(TERMINAL_XY_INIT_MAP.x + MAP_WIDTH + HORIZ_PADDING + 1 + HORIZ_PADDING),
-            y=TERMINAL_XY_INIT_MAP.y,
-        )
-        self.description.display(
-            x=TERMINAL_XY_INIT_MAP.x,
-            y=TERMINAL_XY_INIT_MAP.y + MAP_HEIGHT + (2 * VERT_PADDING + 1),
-        )
+    #     self.options.display(
+    #         x=(TERMINAL_XY_INIT_MAP.x + MAP_WIDTH + HORIZ_PADDING + 1 + HORIZ_PADDING),
+    #         y=TERMINAL_XY_INIT_MAP.y,
+    #     )
+    #     self.description.display(
+    #         x=TERMINAL_XY_INIT_MAP.x,
+    #         y=TERMINAL_XY_INIT_MAP.y + MAP_HEIGHT + (2 * VERT_PADDING + 1),
+    #     )
 
-    def handle_display_updates(
-        self, signal: str | None = None, data: dict[str, Any] | None = None
-    ) -> None:
-        self._log_handle_signal(signal=signal, data=data)
-        self.refresh_display()
+    # def handle_display_updates(
+    #     self, signal: str | None = None, data: dict[str, Any] | None = None
+    # ) -> None:
+    #     self._log_handle_signal(signal=signal, data=data)
+    #     self.refresh_display()
 
     def handle_player_map_loc_updated(
         self, signal: str | None = None, data: dict[str, Any] | None = None
     ) -> None:
         self._log_handle_signal(signal=signal, data=data)
-        self.refresh_display()
+        self.area_map.refresh()
+
+
+def main_display(term: "curses._CursesWindow") -> None:
+    """Call the main display functions for the game."""
+    import time
+
+    def init_colors() -> dict[str, int]:
+        curses.init_pair(1, curses.COLOR_CYAN, curses.COLOR_BLACK)
+        curses.init_pair(2, curses.COLOR_RED, curses.COLOR_BLACK)
+
+        color_map = {
+            "WHITE_ON_BLACK": 0,
+            "CYAN_ON_BLACK": 256,
+            "RED_ON_BLACK": 512,
+        }
+
+        return color_map
+
+    COLOR_MAP = init_colors()
+
+    # input_win = InputWindow(
+    #     loc_start=Loc(10, 10),
+    #     height=1,
+    #     width=30,
+    #     cursor=">",
+    #     border_color=COLOR_MAP["CYAN_ON_BLACK"],
+    # )
+    # msg = input_win.create_user_input()
+
+    with (open(MAPS_DUNGEON_LEVEL_0_TXT, "r") as f,):
+        import json
+
+        dungeon_map = list(list(line) for line in f.readlines())
+
+    game_disp = GameScreen(term=term)
+    game_disp.area_map.display(map_ascii=dungeon_map)
+
+    # user_input = UserInput(term=term)
+    # user_input.wait_for_key()
+    time.sleep(2)
+
+
+if __name__ == "__main__":
+    # curses.wrapper rapper calls "noecho, cbreak, keypad=True" on call.
+    curses.wrapper(main_display)

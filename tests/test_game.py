@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import MagicMock, patch
 
-from glassdolls.game import Game
+from glassdolls.main_game import Game
 
 
 @patch("glassdolls.game.signal")

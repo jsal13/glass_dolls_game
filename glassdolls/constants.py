@@ -2,7 +2,7 @@ import os
 
 import dotenv
 
-from glassdolls.io.utils import Loc
+from glassdolls.utils.game_utils import Loc
 
 dotenv.load_dotenv()
 
@@ -48,32 +48,32 @@ DIFFICULTY_RANK = {
 
 # COLORS
 # Ref: https://en.wikipedia.org/wiki/ANSI_escape_code#Colors
-COLOR_TO_ANSI = {
-    "black": 0,
-    "red": 1,
-    "green": 2,
-    "yellow": 3,
-    "blue": 4,
-    "purple": 5,
-    "cyan": 6,
-    "white": 7,
-    "hi_black": 8,
-    "hi_red": 9,
-    "hi_green": 10,
-    "hi_yellow": 11,
-    "hi_blue": 12,
-    "hi_purple": 13,
-    "hi_cyan": 14,
-    "hi_white": 15,
-}
+# COLOR_TO_ANSI = {
+#     "black": 0,
+#     "red": 1,
+#     "green": 2,
+#     "yellow": 3,
+#     "blue": 4,
+#     "purple": 5,
+#     "cyan": 6,
+#     "white": 7,
+#     "hi_black": 8,
+#     "hi_red": 9,
+#     "hi_green": 10,
+#     "hi_yellow": 11,
+#     "hi_blue": 12,
+#     "hi_purple": 13,
+#     "hi_cyan": 14,
+#     "hi_white": 15,
+# }
 
-USER_COLOR = "hi_purple"
-DESC_TITLE_COLOR = "cyan"
-DESC_TEXT_COLOR = "white"
-OPTIONS_TITLE_COLOR = "cyan"
-OPTIONS_TEXT_COLOR = "white"
-LINE_COLOR = "hi_red"
-DUNGEON_WALL_COLOR = "white"
+# USER_COLOR = "hi_purple"
+# DESC_TITLE_COLOR = "cyan"
+# DESC_TEXT_COLOR = "white"
+# OPTIONS_TITLE_COLOR = "cyan"
+# OPTIONS_TEXT_COLOR = "white"
+# LINE_COLOR = "hi_red"
+# DUNGEON_WALL_COLOR = "white"
 
 # DISPLAY CONSTANTS
 HORIZ_PADDING = 2
@@ -87,7 +87,11 @@ ASCII_CODES = {
     "Vertical": "║",
     "Horizontal": "═",
     "Crossing": "╬",
-    "Up_Left_Right_Crossing": "╩",
+    "ULR_Border": "╩",
+    "UL_Corner": "╔",
+    "BL_Corner": "╚",
+    "UR_Corner": "╗",
+    "BR_Corner": "╝",
 }
 
 # USER CONSTANTS

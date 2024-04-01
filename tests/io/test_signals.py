@@ -2,7 +2,7 @@ import pytest
 from unittest.mock import MagicMock, patch
 from blessed.keyboard import Keystroke
 
-from glassdolls.io.signals import SignalSender
+from glassdolls.game.signals import SignalSender
 
 
 def test_signal_sender_initializes() -> None:

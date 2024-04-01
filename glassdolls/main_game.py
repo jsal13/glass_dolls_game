@@ -6,7 +6,7 @@ from glassdolls.constants import DATA_GAME_DIALOGUE, MAPS_DUNGEON_LEVEL_0_TXT
 from glassdolls.io.input import UserInput
 from glassdolls.io.output import GameScreen
 from glassdolls.io.player import PlayerState
-from glassdolls.io.signals import SignalSender
+from glassdolls.game.signals import SignalSender
 
 
 @define
