@@ -115,25 +115,28 @@ class InputWindow(Window):
 @define
 class MapDisplay(Window, SignalSender):
     player_map_loc: Loc = field(init=False, default=Loc(0, 0))
-
-    # Signals
-    signal_player_map_loc_updated: NamedSignal = field(init=False, repr=False)
+    current_map: list[list[str]] | None = field(init=False, repr=False, default=None)
 
     def __attrs_post_init__(self) -> None:
         Window.__attrs_post_init__(self)
+        curses.curs_set(0)
 
-        self.signal_player_map_loc_updated = signal(
-            f"{self.__class__.__name__}_player_map_loc_updated"
-        )
+    def display(self, map_ascii: list[list[str]] | None = None) -> None:
+        self.subwindow.erase()
+        if map_ascii is not None:
+            self.current_map = map_ascii
 
-    def display(self, map_ascii: list[list[str]]) -> None:
-        for jdx, row in enumerate(map_ascii):
+        if self.current_map is None:
+            raise ValueError("Must initialize map in MapDisplay.")
+
+        for jdx, row in enumerate(self.current_map):
             self.print_at(
                 x=0,
                 y=jdx,
                 text="".join(row),
                 color=0,
             )
+
         self.print_at(
             x=self.player_map_loc.x,
             y=self.player_map_loc.y,
@@ -142,20 +145,16 @@ class MapDisplay(Window, SignalSender):
         )
         self.refresh()
 
-    def update_player_loc(self, previous_loc: Loc) -> None:
-        self.send_signal(self.signal_player_map_loc_updated, data=None)
-
     def handle_player_loc_changed(
         self, signal: str | None = None, data: dict[str, Loc] | None = None
     ) -> None:
-        # Just update the display.
         self._log_handle_signal(signal=signal, data=data)
-
         if data is not None:
             if data.get("location") is not None:
                 previous_loc = deepcopy(self.player_map_loc)
                 self.player_map_loc = data["location"]
-                self.update_player_loc(previous_loc=previous_loc)
+                # self.update_player_loc(previous_loc=previous_loc)
+                self.display()
             else:
                 raise ValueError(f"Got {data}, not a dict with key 'location'.")
         else:
@@ -199,19 +198,19 @@ class OptionsDisplay(Window, SignalSender):
             print()
 
 
-@define
-class LineDisplay(Window, SignalSender):
+# @define
+# class LineDisplay(Window, SignalSender):
 
-    def vertical(self, x: int, y_min: int, y_max: int) -> None:
-        for jdx in range(y_min, y_max + 1):
-            self.print_at(x=x, y=jdx, text=ASCII_CODES["Vertical"], color=0)
+#     def vertical(self, x: int, y_min: int, y_max: int) -> None:
+#         for jdx in range(y_min, y_max + 1):
+#             self.print_at(x=x, y=jdx, text=ASCII_CODES["Vertical"], color=512)
 
-    def horizontal(self, y: int, x_min: int, x_max: int) -> None:
-        for idx in range(x_min, x_max + 1):
-            self.print_at(x=idx, y=y, text=ASCII_CODES["Horizontal"], color=0)
+#     def horizontal(self, y: int, x_min: int, x_max: int) -> None:
+#         for idx in range(x_min, x_max + 1):
+#             self.print_at(x=idx, y=y, text=ASCII_CODES["Horizontal"], color=512)
 
-    def crossing(self, x: int, y: int) -> None:
-        self.print_at(x=x, y=y, text=ASCII_CODES["ULR_Crossing"], color=0)
+#     def crossing(self, x: int, y: int) -> None:
+#         self.print_at(x=x, y=y, text=ASCII_CODES["ULR_Crossing"], color=512)
 
 
 @define
@@ -288,7 +287,6 @@ class GameScreen(SignalSender):
     term: "curses._CursesWindow" = field(repr=False)
     area_map: MapDisplay = field(init=False, repr=False)
     # options: OptionsDisplay = field(init=False, repr=False)
-    # line: LineDisplay = field(init=False, repr=False)
     # description: DescriptionDisplay = field(init=False, repr=False)
     # Signals.
     signal_user_input: NamedSignal = field(init=False, repr=False)
@@ -296,14 +294,15 @@ class GameScreen(SignalSender):
     def __attrs_post_init__(self) -> None:
         # Initialize the stuff.
         self.area_map = MapDisplay(
-            loc_start=Loc(1, 1),
-            height=16,
-            width=16,
+            loc_start=TERMINAL_XY_INIT_MAP,
+            height=MAP_HEIGHT,
+            width=MAP_WIDTH,
             border=0,
             border_color=0,
         )
+
         # self.options = OptionsDisplay(term=self.term)
-        # self.line = LineDisplay()
+        self.draw_lines()
         # self.description = DescriptionDisplay(term=self.term)
 
         self.signal_user_input = signal(f"{self.__class__.__name__}_user_input")
@@ -311,28 +310,32 @@ class GameScreen(SignalSender):
         # Subscribe to Signals.
         # self.description.signal_title_updated.connect(self.handle_display_updates)
         # self.description.signal_text_updated.connect(self.handle_display_updates)
-        self.area_map.signal_player_map_loc_updated.connect(
-            self.handle_player_map_loc_updated
+
+    def draw_lines(self) -> None:
+        self.term.vline(
+            VERT_PADDING,
+            TERMINAL_XY_INIT_MAP.x + MAP_WIDTH + HORIZ_PADDING,
+            "|",
+            TERMINAL_XY_INIT_MAP.y + MAP_HEIGHT,
+        )
+
+        self.term.hline(
+            TERMINAL_XY_INIT_MAP.y + MAP_HEIGHT + VERT_PADDING,
+            HORIZ_PADDING,
+            "-",
+            MAX_SCREEN_WIDTH,
+        )
+
+        self.term.addch(
+            TERMINAL_XY_INIT_MAP.y + MAP_HEIGHT + VERT_PADDING,
+            TERMINAL_XY_INIT_MAP.x + MAP_WIDTH + HORIZ_PADDING,
+            "+",
         )
 
     # def _refresh_screen(self) -> None:
     #     print(f"{self.term.home}{self.term.clear}")
 
     # def refresh_display(self) -> None:
-    #     self.line.vertical(
-    #         x=TERMINAL_XY_INIT_MAP.x + MAP_WIDTH + HORIZ_PADDING,
-    #         y_min=VERT_PADDING,
-    #         y_max=TERMINAL_XY_INIT_MAP.y + MAP_HEIGHT + VERT_PADDING,
-    #     )
-    #     self.line.horizontal(
-    #         y=TERMINAL_XY_INIT_MAP.y + MAP_HEIGHT + VERT_PADDING,
-    #         x_min=HORIZ_PADDING,
-    #         x_max=MAX_SCREEN_WIDTH - HORIZ_PADDING,
-    #     )
-    #     self.line.crossing(
-    #         x=TERMINAL_XY_INIT_MAP.x + MAP_WIDTH + HORIZ_PADDING,
-    #         y=TERMINAL_XY_INIT_MAP.y + MAP_HEIGHT + VERT_PADDING,
-    #     )
     #     self.area_map.display()
 
     #     self.options.display(
@@ -349,54 +352,3 @@ class GameScreen(SignalSender):
     # ) -> None:
     #     self._log_handle_signal(signal=signal, data=data)
     #     self.refresh_display()
-
-    def handle_player_map_loc_updated(
-        self, signal: str | None = None, data: dict[str, Any] | None = None
-    ) -> None:
-        self._log_handle_signal(signal=signal, data=data)
-        self.area_map.refresh()
-
-
-def main_display(term: "curses._CursesWindow") -> None:
-    """Call the main display functions for the game."""
-    import time
-
-    def init_colors() -> dict[str, int]:
-        curses.init_pair(1, curses.COLOR_CYAN, curses.COLOR_BLACK)
-        curses.init_pair(2, curses.COLOR_RED, curses.COLOR_BLACK)
-
-        color_map = {
-            "WHITE_ON_BLACK": 0,
-            "CYAN_ON_BLACK": 256,
-            "RED_ON_BLACK": 512,
-        }
-
-        return color_map
-
-    COLOR_MAP = init_colors()
-
-    # input_win = InputWindow(
-    #     loc_start=Loc(10, 10),
-    #     height=1,
-    #     width=30,
-    #     cursor=">",
-    #     border_color=COLOR_MAP["CYAN_ON_BLACK"],
-    # )
-    # msg = input_win.create_user_input()
-
-    with (open(MAPS_DUNGEON_LEVEL_0_TXT, "r") as f,):
-        import json
-
-        dungeon_map = list(list(line) for line in f.readlines())
-
-    game_disp = GameScreen(term=term)
-    game_disp.area_map.display(map_ascii=dungeon_map)
-
-    # user_input = UserInput(term=term)
-    # user_input.wait_for_key()
-    time.sleep(2)
-
-
-if __name__ == "__main__":
-    # curses.wrapper rapper calls "noecho, cbreak, keypad=True" on call.
-    curses.wrapper(main_display)

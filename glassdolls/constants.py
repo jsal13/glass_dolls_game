@@ -87,7 +87,7 @@ ASCII_CODES = {
     "Vertical": "║",
     "Horizontal": "═",
     "Crossing": "╬",
-    "ULR_Border": "╩",
+    "ULR_Crossing": "╩",
     "UL_Corner": "╔",
     "BL_Corner": "╚",
     "UR_Corner": "╗",

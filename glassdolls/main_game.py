@@ -1,12 +1,28 @@
+import curses
+
 from attrs import define, field
-from blessed import Terminal
 from blinker import NamedSignal, signal
 
 from glassdolls.constants import DATA_GAME_DIALOGUE, MAPS_DUNGEON_LEVEL_0_TXT
 from glassdolls.io.input import UserInput
 from glassdolls.io.output import GameScreen
-from glassdolls.io.player import PlayerState
+from glassdolls.game.player import PlayerState
 from glassdolls.game.signals import SignalSender
+from glassdolls.utils.game_utils import Loc
+from glassdolls import logger
+
+#     # input_win = InputWindow(
+#     #     loc_start=Loc(10, 10),
+#     #     height=1,
+#     #     width=30,
+#     #     cursor=">",
+#     #     border_color=COLOR_MAP["CYAN_ON_BLACK"],
+#     # )
+#     # msg = input_win.create_user_input()
+
+# if __name__ == "__main__":
+#     # curses.wrapper rapper calls "noecho, cbreak, keypad=True" on call.
+#     curses.wrapper(main_display)
 
 
 @define
@@ -16,69 +32,75 @@ class GameState:
 
 @define
 class Game(SignalSender):
-    term: Terminal = field(repr=False)
+    term: "curses._CursesWindow" = field(repr=False)
     game_screen: GameScreen = field(repr=False)
     user_input: UserInput = field(repr=False)
     player: PlayerState = field(repr=False)
 
-    signal_player_movement: NamedSignal = field(init=False, repr=False)
-
     def __attrs_post_init__(self) -> None:
-        self.signal_player_movement = signal(
-            f"{self.__class__.__name__}_player_movement"
-        )
-
         # Subscribe to Signals.
-        self.signal_player_movement.connect(self.player.handle_signal_player_movement)
-
         self.player.signal_player_loc_changed.connect(
             self.game_screen.area_map.handle_player_loc_changed
         )
 
-        self.user_input.signal_player_movement.connect(
-            self.player.handle_signal_player_movement
-        )
-
-        # Send necessary init signals.
-        self.send_signal(
-            self.player.signal_player_loc_changed, data={"location": self.player.loc}
+        self.user_input.signal_player_input_movement.connect(
+            self.player.handle_signal_player_input_movement
         )
 
 
 if __name__ == "__main__":
 
-    def run() -> None:
+    import time
+    import json
+
+    def run(term: "curses._CursesWindow") -> None:
         with (
             open(MAPS_DUNGEON_LEVEL_0_TXT, "r") as f,
             open(DATA_GAME_DIALOGUE, "r") as g,
         ):
-            import json
 
             dungeon_map = list(list(line) for line in f.readlines())
             game_text = json.load(g)
 
-        TERM = Terminal()
+        def init_colors() -> dict[str, int]:
+            curses.init_pair(1, curses.COLOR_CYAN, curses.COLOR_BLACK)
+            curses.init_pair(2, curses.COLOR_RED, curses.COLOR_BLACK)
+            curses.init_pair(3, curses.COLOR_RED, curses.COLOR_BLACK)
 
-        # Game Screen Init.
-        game_screen = GameScreen(term=TERM)
-        game_screen.area_map.map_ascii = dungeon_map
-        game_screen.description.title = "Hello!"
-        game_screen.description.text = game_text["introduction_0"]
-        game_screen.refresh_display()
+            color_map = {
+                "WHITE_ON_BLACK": curses.color_pair(0),
+                "CYAN_ON_BLACK": curses.color_pair(1),
+                "RED_ON_BLACK": curses.color_pair(2),
+                "RED_ON_WHITE": curses.color_pair(3),
+            }
 
-        # Game Init.
-        user_input = UserInput(term=TERM)
+            return color_map
 
-        from glassdolls.io.utils import Loc
+        logger.debug(str(init_colors()))
 
+        # Initialize Game States, Screen, Input.
         player = PlayerState()
-        player.loc = Loc(2, 2)
+        game_screen = GameScreen(term=term)
+        game_screen.draw_lines()
+        game_screen.area_map.display(map_ascii=dungeon_map)
+
+        user_input = UserInput(term=term)
+
         game = Game(
-            term=TERM, game_screen=game_screen, user_input=user_input, player=player
+            term=term, game_screen=game_screen, user_input=user_input, player=player
         )
+
+        # Initialize Values.  Must come after _all_ ``Game`` items,
+        # as ``Game`` connects the signals to the handlers.
+        player.loc = Loc(2, 2)
+
+        # game_screen.description.title = "Hello!"
+        # game_screen.description.text = game_text["introduction_0"]
+        # game_screen.refresh_display()
 
         # Start the Game Stuff.
         while True:
             game.user_input.wait_for_key()
 
-    run()
+    # curses.wrapper rapper calls "noecho, cbreak, keypad=True" on call.
+    curses.wrapper(run)

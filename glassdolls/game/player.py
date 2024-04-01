@@ -35,7 +35,7 @@ class PlayerState(SignalSender):
         self._loc = value
         self.send_signal(self.signal_player_loc_changed, data={"location": self.loc})
 
-    def handle_signal_player_movement(
+    def handle_signal_player_input_movement(
         self, signal: str | None = None, data: dict[str, Any] | None = None
     ) -> None:
         self._log_handle_signal(signal=signal, data=data)

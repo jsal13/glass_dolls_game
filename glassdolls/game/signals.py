@@ -13,9 +13,7 @@ class SignalSender:
     def send_signal(
         self, signal: NamedSignal, data: dict[str, Any] | None = None
     ) -> None:
-        logger.debug(
-            f'SENT ("{self.__class__.__name__}") Signal: "{signal.name}".  Data: "{data}"'
-        )
+        logger.debug(f'SENT: "{signal.name}".  Data: "{data}"')
         signal.send(signal.name, data=data)
 
     def _log_handle_signal(
@@ -23,5 +21,5 @@ class SignalSender:
     ) -> None:
         if signal is not None:
             logger.debug(
-                f'GOT  ("{self.__class__.__name__}") Signal: "{signal}".  Data: "{data}"'
+                f'GOT ("{self.__class__.__name__}"): "{signal}".  Data: "{data}"'
             )
