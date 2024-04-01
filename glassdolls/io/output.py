@@ -192,18 +192,13 @@ class OptionsDisplay(Window, SignalSender):
         self._options = value
         self.send_signal(self.signal_options_updated)
 
-    def display(
-        self,
-        x: int,
-        y: int,
-    ) -> None:
-        self.print_at(x=x, y=y, text="OPTIONS", color=265)
-        self.print_at(x=x, y=y + 1, text="=======", color=256)
+    def display(self) -> None:
+        self.print_at(x=0, y=0, text="OPTIONS", color=265)
+        self.print_at(x=0, y=1, text="=======", color=256)
         for jdx, option in enumerate(self.options):
-            self.print_at(x=x, y=y + jdx + 2, text=option, color=0)
+            self.print_at(x=0, y=jdx + 2, text=option, color=0)
 
-        for jdx in range((MAP_HEIGHT + VERT_PADDING) - len(self.options)):
-            print()
+        self.refresh()
 
 
 # @define
@@ -294,7 +289,7 @@ class GameScreen(SignalSender):
 
     term: "curses._CursesWindow" = field(repr=False)
     area_map: MapDisplay = field(init=False, repr=False)
-    # options: OptionsDisplay = field(init=False, repr=False)
+    options: OptionsDisplay = field(init=False, repr=False)
     # description: DescriptionDisplay = field(init=False, repr=False)
     # Signals.
     signal_user_input: NamedSignal = field(init=False, repr=False)
@@ -309,7 +304,14 @@ class GameScreen(SignalSender):
             border_color=0,
         )
 
-        # self.options = OptionsDisplay(term=self.term)
+        self.options = OptionsDisplay(
+            loc_start=TERMINAL_XY_INIT_MAP + Loc(MAP_WIDTH + (2 * HORIZ_PADDING), 0),
+            height=MAP_HEIGHT + (2 * VERT_PADDING),
+            width=20,
+            border=0,
+            border_color=0,
+        )
+        self.options.refresh()
         self.draw_lines()
         # self.description = DescriptionDisplay(term=self.term)
 
@@ -339,6 +341,7 @@ class GameScreen(SignalSender):
             TERMINAL_XY_INIT_MAP.x + MAP_WIDTH + HORIZ_PADDING,
             "+",
         )
+        self.term.refresh()
 
     # def _refresh_screen(self) -> None:
     #     print(f"{self.term.home}{self.term.clear}")

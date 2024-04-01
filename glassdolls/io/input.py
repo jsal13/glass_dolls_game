@@ -11,13 +11,20 @@ from glassdolls.game.signals import SignalSender
 
 @define
 class UserInput(SignalSender):
-    term: "curses._CursesWindow"
+    subwindow: "curses._CursesWindow" = field(init=False, repr=False)
 
     # Signals
     signal_user_input: NamedSignal = field(init=False, repr=False)
     signal_player_input_movement: NamedSignal = field(init=False, repr=False)
 
     def __attrs_post_init__(self) -> None:
+        self.subwindow = curses.newwin(
+            1,
+            1,
+            0,
+            0,
+        )
+
         self.signal_user_input = signal(f"{self.__class__.__name__}_user_input")
         self.signal_player_input_movement = signal(
             f"{self.__class__.__name__}_player_input_movement"
@@ -25,7 +32,7 @@ class UserInput(SignalSender):
 
     def wait_for_key(self) -> None:
         while True:
-            val: str = self.term.getkey()
+            val: str = self.subwindow.getkey()
 
             if val is not None:
                 break
@@ -34,8 +41,14 @@ class UserInput(SignalSender):
         self.triage_user_input(key_value=val)
 
     def triage_user_input(self, key_value: str) -> None:
+        logger.debug(f"WE GOT {key_value}.")
         upper_key_value = key_value.upper()
-        if upper_key_value in ["KEY_LEFT", "KEY_RIGHT", "KEY_DOWN", "KEY_UP"]:
+        if upper_key_value in [
+            "J",
+            "K",
+            "L",
+            "I",
+        ]:  # ["KEY_LEFT", "KEY_RIGHT", "KEY_DOWN", "KEY_UP"]:
             player_movement = USER_MOVEMENT[key_value]
             self.send_signal(
                 self.signal_player_input_movement, data={"direction": player_movement}

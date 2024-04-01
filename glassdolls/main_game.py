@@ -68,14 +68,16 @@ if __name__ == "__main__":
         #     # curses.wrapper rapper calls "noecho, cbreak, keypad=True" on call.
         #     curses.wrapper(main_display)
 
-        logger.debug(str(_init_colors()))
+        # logger.debug(str(_init_colors()))
+
+        _init_colors()
 
         # Initialize Game States, Screen, Input.
         player = PlayerState()
         game_screen = GameScreen(term=term)
         game_screen.draw_lines()
-
-        user_input = UserInput(term=term)
+        game_screen.options.display()
+        user_input = UserInput()
 
         game = Game(
             term=term, game_screen=game_screen, user_input=user_input, player=player
@@ -88,8 +90,8 @@ if __name__ == "__main__":
         # game_screen.description.title = "Hello!"
         # game_screen.description.text = game_text["introduction_0"]
         # game_screen.refresh_display()
+        game_screen.options.refresh()
 
-        # time.sleep(2)
         # Start the Game Stuff.
         while True:
             game.user_input.wait_for_key()

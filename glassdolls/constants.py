@@ -109,8 +109,13 @@ ASCII_CODES = {
 
 # USER CONSTANTS
 USER_MOVEMENT = {
-    "KEY_LEFT": Loc(-1, 0),
-    "KEY_RIGHT": Loc(1, 0),
-    "KEY_DOWN": Loc(0, 1),
-    "KEY_UP": Loc(0, -1),
+    "j": Loc(-1, 0),
+    "l": Loc(1, 0),
+    "k": Loc(0, 1),
+    "i": Loc(0, -1),
 }
+
+# "KEY_LEFT": Loc(-1, 0),
+# "KEY_RIGHT": Loc(1, 0),
+# "KEY_DOWN": Loc(0, 1),
+# "KEY_UP": Loc(0, -1),
