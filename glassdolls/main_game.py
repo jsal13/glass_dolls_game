@@ -5,7 +5,7 @@ from attrs import define, field
 # from blinker import NamedSignal, signal
 
 from glassdolls.io.input import UserInput
-from glassdolls.io.output import GameScreen
+from glassdolls.io.output import GameScreen, GameText
 from glassdolls.game.player import PlayerState
 from glassdolls.game.signals import SignalSender
 from glassdolls.utils import Loc
@@ -71,6 +71,7 @@ if __name__ == "__main__":
         # logger.debug(str(_init_colors()))
 
         _init_colors()
+        game_text = GameText()
 
         # Initialize Game States, Screen, Input.
         player = PlayerState()
@@ -87,10 +88,10 @@ if __name__ == "__main__":
         # as ``Game`` connects the signals to the handlers.
         player.loc = Loc(2, 2)
 
-        # game_screen.description.title = "Hello!"
-        # game_screen.description.text = game_text["introduction_0"]
-        # game_screen.refresh_display()
-        game_screen.options.refresh()
+        game_screen.description.title = "Hello!"
+        game_screen.description.text = game_text.text["introduction_0"]
+
+        usr_input = game_screen.input_window.create_user_input()
 
         # Start the Game Stuff.
         while True:

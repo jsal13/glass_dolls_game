@@ -1,3 +1,4 @@
+import json
 import curses
 from typing import Any, Sequence
 from copy import deepcopy
@@ -6,8 +7,6 @@ from attrs import define, field
 
 from glassdolls import logger
 from glassdolls.utils import Loc
-from glassdolls.constants import ASCII_CODES
-from glassdolls.io.input import UserInput
 from glassdolls.game.signals import SignalSender
 from glassdolls.game.maps import Map
 
@@ -21,7 +20,9 @@ from glassdolls.constants import (
     MAX_SCREEN_WIDTH,
     TERMINAL_XY_INIT_MAP,
     VERT_PADDING,
-    MAP_DUNGEON_LEVEL_0_TXT,
+    ASCII_CODES,
+    DATA_GAME_DIALOGUE,
+    DESCRIPTION_HEIGHT,
 )
 
 USER_INPUT_OPTIONS = ["(←↑→↓) Move", "(L)ook", "(U)se", "(I)nventory"]
@@ -109,6 +110,9 @@ class InputWindow(Window):
         msg = self.subwindow.getstr(y_start, x_input_start, input_width).decode(
             encoding="utf-8"
         )
+        self.subwindow.clear()
+        self.subwindow.refresh()
+
         curses.noecho()
         return msg
 
@@ -197,37 +201,26 @@ class OptionsDisplay(Window, SignalSender):
         self.print_at(x=0, y=1, text="=======", color=256)
         for jdx, option in enumerate(self.options):
             self.print_at(x=0, y=jdx + 2, text=option, color=0)
-
         self.refresh()
 
 
-# @define
-# class LineDisplay(Window, SignalSender):
+@define
+class GameText:
+    game_text_path: str = field(default=DATA_GAME_DIALOGUE)
+    text: dict[str, Any] = field(repr=False, init=False)
 
-#     def vertical(self, x: int, y_min: int, y_max: int) -> None:
-#         for jdx in range(y_min, y_max + 1):
-#             self.print_at(x=x, y=jdx, text=ASCII_CODES["Vertical"], color=512)
+    def __attrs_post_init__(self) -> None:
+        with open(self.game_text_path, "r", encoding="utf-8") as f:
+            self.text = json.load(f)
 
-#     def horizontal(self, y: int, x_min: int, x_max: int) -> None:
-#         for idx in range(x_min, x_max + 1):
-#             self.print_at(x=idx, y=y, text=ASCII_CODES["Horizontal"], color=512)
-
-#     def crossing(self, x: int, y: int) -> None:
-#         self.print_at(x=x, y=y, text=ASCII_CODES["ULR_Crossing"], color=512)
+    def __getitem__(self, key: str) -> list[str]:
+        return self.text[key]
 
 
 @define
 class DescriptionDisplay(Window, SignalSender):
     _title: str | None = field(default=None)
     _text: str | None = field(default=None, repr=False)
-
-    # Signals
-    signal_title_updated: NamedSignal = field(init=False, repr=False)
-    signal_text_updated: NamedSignal = field(init=False, repr=False)
-
-    def __attrs_post_init__(self) -> None:
-        self.signal_title_updated = signal(f"{self.__class__.__name__}_title_updated")
-        self.signal_text_updated = signal(f"{self.__class__.__name__}_text_updated")
 
     @property
     def title(self) -> str | None:
@@ -236,7 +229,7 @@ class DescriptionDisplay(Window, SignalSender):
     @title.setter
     def title(self, value: str | None) -> None:
         self._title = value
-        self.send_signal(self.signal_title_updated)
+        self.display()
 
     @property
     def text(self) -> str | None:
@@ -245,17 +238,23 @@ class DescriptionDisplay(Window, SignalSender):
     @text.setter
     def text(self, value: str | None) -> None:
         self._text = value
-        self.send_signal(self.signal_text_updated)
+        self.display()
 
-    def display(self, x: int, y: int) -> None:
+    def display(self) -> None:
+        x_start = 1 if self.border else 0
+        y_start = 1 if self.border else 0
+        input_width = self.width - (2 * self.border)
+
         if self.title is not None:
-            self.print_at(x=x, y=y, text=self.title, color=0)
+            self.print_at(x=x_start, y=y_start, text=self.title, color=0)
             self.print_at(
-                x=x,
-                y=y + 1,
+                x=x_start,
+                y=y_start + 1,
                 text="-" * len(self.title) + "\n\n",
                 color=0,
             )
+
+        self.refresh()
 
         # if self.text is not None:
         #     text_list = self.text.split("\n")
@@ -290,12 +289,10 @@ class GameScreen(SignalSender):
     term: "curses._CursesWindow" = field(repr=False)
     area_map: MapDisplay = field(init=False, repr=False)
     options: OptionsDisplay = field(init=False, repr=False)
-    # description: DescriptionDisplay = field(init=False, repr=False)
-    # Signals.
-    signal_user_input: NamedSignal = field(init=False, repr=False)
+    description: DescriptionDisplay = field(init=False, repr=False)
+    input_window: InputWindow = field(init=False, repr=False)
 
     def __attrs_post_init__(self) -> None:
-        # Initialize the stuff.
         self.area_map = MapDisplay(
             loc_start=TERMINAL_XY_INIT_MAP,
             height=MAP_HEIGHT,
@@ -311,55 +308,61 @@ class GameScreen(SignalSender):
             border=0,
             border_color=0,
         )
+
+        self.description = DescriptionDisplay(
+            loc_start=TERMINAL_XY_INIT_MAP + Loc(0, MAP_WIDTH + (2 * VERT_PADDING)),
+            height=5,
+            width=MAX_SCREEN_WIDTH,
+            border=0,
+            border_color=0,
+        )
+
+        self.input_window = InputWindow(
+            loc_start=Loc(
+                TERMINAL_XY_INIT_MAP.x,
+                TERMINAL_XY_INIT_MAP.y
+                + MAP_HEIGHT
+                + (2 * VERT_PADDING)
+                + DESCRIPTION_HEIGHT
+                + VERT_PADDING,
+            ),
+            height=1,
+            width=MAX_SCREEN_WIDTH - 5,
+            border=1,
+            border_color=256,
+        )
+
         self.options.refresh()
         self.draw_lines()
-        # self.description = DescriptionDisplay(term=self.term)
-
-        self.signal_user_input = signal(f"{self.__class__.__name__}_user_input")
-
-        # Subscribe to Signals.
-        # self.description.signal_title_updated.connect(self.handle_display_updates)
-        # self.description.signal_text_updated.connect(self.handle_display_updates)
+        self.input_window.refresh()
 
     def draw_lines(self) -> None:
-        self.term.vline(
-            VERT_PADDING,
-            TERMINAL_XY_INIT_MAP.x + MAP_WIDTH + HORIZ_PADDING,
-            "|",
-            TERMINAL_XY_INIT_MAP.y + MAP_HEIGHT,
-        )
+        # Vertical
+        _x = TERMINAL_XY_INIT_MAP.x + MAP_WIDTH + HORIZ_PADDING
+        for jdx in range(VERT_PADDING, TERMINAL_XY_INIT_MAP.y + MAP_HEIGHT + 1):
+            self.term.addstr(jdx, _x, ASCII_CODES["Vertical"], 512)
 
-        self.term.hline(
-            TERMINAL_XY_INIT_MAP.y + MAP_HEIGHT + VERT_PADDING,
-            HORIZ_PADDING,
-            "-",
-            MAX_SCREEN_WIDTH,
-        )
+        # Horizontal
+        _y = TERMINAL_XY_INIT_MAP.y + MAP_HEIGHT + VERT_PADDING
+        for idx in range(HORIZ_PADDING, MAX_SCREEN_WIDTH + 1):
+            self.term.addstr(_y, idx, ASCII_CODES["Horizontal"], 512)
 
-        self.term.addch(
+        # Crossings
+        self.term.addstr(
             TERMINAL_XY_INIT_MAP.y + MAP_HEIGHT + VERT_PADDING,
             TERMINAL_XY_INIT_MAP.x + MAP_WIDTH + HORIZ_PADDING,
-            "+",
+            ASCII_CODES["ULR_Crossing"],
+            512,
         )
+
+        # Under Description, horizontal.
+        _y = (
+            TERMINAL_XY_INIT_MAP.y
+            + MAP_HEIGHT
+            + (2 * VERT_PADDING)
+            + DESCRIPTION_HEIGHT
+        )
+        for idx in range(HORIZ_PADDING, MAX_SCREEN_WIDTH + 1):
+            self.term.addstr(_y, idx, ASCII_CODES["Horizontal"], 512)
+
         self.term.refresh()
-
-    # def _refresh_screen(self) -> None:
-    #     print(f"{self.term.home}{self.term.clear}")
-
-    # def refresh_display(self) -> None:
-    #     self.area_map.display()
-
-    #     self.options.display(
-    #         x=(TERMINAL_XY_INIT_MAP.x + MAP_WIDTH + HORIZ_PADDING + 1 + HORIZ_PADDING),
-    #         y=TERMINAL_XY_INIT_MAP.y,
-    #     )
-    #     self.description.display(
-    #         x=TERMINAL_XY_INIT_MAP.x,
-    #         y=TERMINAL_XY_INIT_MAP.y + MAP_HEIGHT + (2 * VERT_PADDING + 1),
-    #     )
-
-    # def handle_display_updates(
-    #     self, signal: str | None = None, data: dict[str, Any] | None = None
-    # ) -> None:
-    #     self._log_handle_signal(signal=signal, data=data)
-    #     self.refresh_display()
