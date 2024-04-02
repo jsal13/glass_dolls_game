@@ -1,4 +1,5 @@
 import curses
+from typing import Any
 
 from attrs import define, field
 
@@ -8,14 +9,32 @@ from glassdolls.io.input import UserInput
 from glassdolls.io.output import GameScreen, GameText
 from glassdolls.game.player import PlayerState
 from glassdolls.game.signals import SignalSender
+from glassdolls.game.maps import Map
 from glassdolls.utils import Loc
+
 from glassdolls import logger
 from glassdolls.io.utils import Color
 
 
 @define
-class GameState:
-    pass
+class GameState(SignalSender):
+    player: PlayerState = field(repr=False)
+    map_state: Map = field(repr=False)
+
+    def handle_signal_player_input_attempt_movement(
+        self, signal: str | None = None, data: dict[str, Any] | None = None
+    ) -> None:
+        self._log_handle_signal(signal=signal, data=data)
+
+        if data is not None:
+            if data.get("direction") is not None:
+                potential_loc = self.player.loc + data["direction"]
+                if not self.map_state._is_collider(loc=potential_loc):
+                    self.player.loc = potential_loc
+            else:
+                raise ValueError(f"Got {data}, not a dict with key 'direction'.")
+        else:
+            raise ValueError("Got empty data package.")
 
 
 @define
@@ -24,9 +43,12 @@ class Game(SignalSender):
     game_screen: GameScreen = field(repr=False)
     user_input: UserInput = field(repr=False)
     player: PlayerState = field(repr=False)
+    game_state: GameState = field(repr=False, init=False)
 
     def __attrs_post_init__(self) -> None:
-        # Subscribe to Signals.
+        self.game_state = GameState(
+            player=self.player, map_state=self.game_screen.area_map.current_map
+        )
 
         # Updates map if player loc has changed.
         self.player.signal_player_loc_changed.connect(
@@ -34,8 +56,8 @@ class Game(SignalSender):
         )
 
         # Handles player movement if arrow is pressed.
-        self.user_input.signal_player_input_movement.connect(
-            self.player.handle_signal_player_input_movement
+        self.user_input.signal_player_input_attempt_movement.connect(
+            self.game_state.handle_signal_player_input_attempt_movement
         )
 
 
@@ -55,6 +77,10 @@ if __name__ == "__main__":
 
         game = Game(
             term=term, game_screen=game_screen, user_input=user_input, player=player
+        )
+
+        game_state = GameState(
+            player=player, map_state=game.game_screen.area_map.current_map
         )
 
         # INITIALIZE VALUES.  (Must come after `Game` init.)
