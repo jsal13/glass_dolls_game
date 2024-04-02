@@ -1,3 +1,4 @@
+import time
 import textwrap
 import json
 import curses
@@ -222,9 +223,12 @@ class DescriptionDisplay(Window, SignalSender):
         self._text = value
         self.display()
 
-    def display(self) -> None:
+    def clear(self) -> None:
         self.subwindow.clear()
         self.refresh()
+
+    def display(self) -> None:
+        self.subwindow.clear()
         if self.title is not None:
             self.print_at(x=0, y=0, text=self.title, color=self.title_color)
             self.print_at(
@@ -260,6 +264,21 @@ class DescriptionDisplay(Window, SignalSender):
                 )
         self.refresh()
 
+    def _wait_for_key(self) -> None:
+        while True:
+            val: str = self.subwindow.getkey()
+
+            if val is not None:
+                break
+
+    def display_dialogue(self, text_list: list[str]) -> None:
+
+        for line in text_list:
+            self.text = line
+            self._wait_for_key()
+            curses.flushinp()
+        self.clear()
+
 
 @define
 class GameScreen(SignalSender):
@@ -294,7 +313,7 @@ class GameScreen(SignalSender):
         )
 
         self.description = DescriptionDisplay(
-            loc_start=TERMINAL_XY_INIT_MAP + Loc(0, MAP_WIDTH + (2 * VERT_PADDING)),
+            loc_start=TERMINAL_XY_INIT_MAP + Loc(0, MAP_HEIGHT + (2 * VERT_PADDING)),
             height=DESCRIPTION_HEIGHT,
             width=MAX_SCREEN_WIDTH,
             border=0,

@@ -27,10 +27,13 @@ class Game(SignalSender):
 
     def __attrs_post_init__(self) -> None:
         # Subscribe to Signals.
+
+        # Updates map if player loc has changed.
         self.player.signal_player_loc_changed.connect(
             self.game_screen.area_map.handle_player_loc_changed
         )
 
+        # Handles player movement if arrow is pressed.
         self.user_input.signal_player_input_movement.connect(
             self.player.handle_signal_player_input_movement
         )
@@ -40,23 +43,6 @@ if __name__ == "__main__":
     import time
 
     def run(term: "curses._CursesWindow") -> None:
-
-        #     # input_win = InputWindow(
-
-        #     #     loc_start=Loc(10, 10),
-        #     #     height=1,
-        #     #     width=30,
-        #     #     cursor=">",
-        #     #     border_color=COLOR_MAP["CYAN_ON_BLACK"],
-        #     # )
-        #     # msg = input_win.create_user_input()
-
-        # if __name__ == "__main__":
-        #     # curses.wrapper rapper calls "noecho, cbreak, keypad=True" on call.
-        #     curses.wrapper(main_display)
-
-        # logger.debug(str(_init_colors()))
-
         color = Color()
         game_text = GameText()
 
@@ -71,17 +57,16 @@ if __name__ == "__main__":
             term=term, game_screen=game_screen, user_input=user_input, player=player
         )
 
-        # Initialize Values.  Must come after _all_ ``Game`` items,
-        # as ``Game`` connects the signals to the handlers.
+        # INITIALIZE VALUES.  (Must come after `Game` init.)
         player.loc = Loc(2, 2)
 
         game_screen.description.title = "Hello!"
         # SIGNALS LATER.
-        for line in game_text.text["introduction"]:
-            game_screen.description.text = line
-            continue_key = None
-            while continue_key is None:
-                continue_key = game.user_input.wait_for_key()
+
+        intro_text = game_text.text["introduction"]
+        if isinstance(intro_text, str):
+            raise ValueError("Expected a list for `intro_text`.")
+        game_screen.description.display_dialogue(text_list=intro_text)
 
         usr_input = game_screen.input_window.create_user_input()
 

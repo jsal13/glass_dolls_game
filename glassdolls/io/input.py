@@ -16,6 +16,7 @@ class UserInput(SignalSender):
     # Signals
     signal_user_input: NamedSignal = field(init=False, repr=False)
     signal_player_input_movement: NamedSignal = field(init=False, repr=False)
+    signal_key_pressed: NamedSignal = field(init=False, repr=False)
 
     def __attrs_post_init__(self) -> None:
         self.subwindow = curses.newwin(
@@ -45,6 +46,7 @@ class UserInput(SignalSender):
 
     def triage_user_input(self, key_value: str) -> None:
         upper_key_value = key_value.upper()
+
         if upper_key_value in USER_MOVEMENT:
             player_movement = USER_MOVEMENT[key_value]
             self.send_signal(
