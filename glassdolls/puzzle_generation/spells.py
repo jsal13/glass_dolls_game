@@ -12,7 +12,7 @@ with (
     syllables = json.load(syllable_json)
     VOWELS = syllables["vowels"]
     NONVOWELS = syllables["nonvowels"]
-    SPELL_LIST = json.load(spell_json)
+    SPELL_LIST: dict[str, list[str]] = json.load(spell_json)
 
 
 def generate_random_syllables(
@@ -95,3 +95,12 @@ def generate_spells(
         )
         for spell in spell_list[SPELL_LEVEL]
     }
+
+
+# syllables = generate_random_syllables()
+# print(
+#     generate_spells(
+#         syllables_list=syllables,
+#         spell_list=SPELL_LIST,
+#     )
+# )

@@ -89,6 +89,7 @@ dev = [
     "pytest-mock~=3.14",
     "pytest~=8.1",
     "ruff~=0.3",
+    "types-beautifulsoup4~=4.12",
 ]
 
 # # List URLs that are relevant to your project
