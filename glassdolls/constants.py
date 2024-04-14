@@ -29,13 +29,13 @@ MAP_LEGEND_JSON_FILE = os.getenv("MAP_LEGEND_JSON", f"{MAP_DIR}/map_legend.json"
 with open(MAP_LEGEND_JSON_FILE, "r", encoding="utf-8") as map_legend_json:
     MAP_LEGEND_JSON: dict[str, dict[str, str]] = json.load(map_legend_json)
 
-# How do we do typehints on this stuff from, say, the map file?
-MAP_DUNGEON_LEVEL_0_TXT_FILE = os.getenv(
-    "MAP_DUNGEON_LEVEL_0_TXT", f"{MAP_DIR}/dungeon_level_0.txt"
+# How do we do type hints on this stuff from, say, the map file?
+MAP_TOWN_TEST_FILE = os.getenv(
+    "MAP_TOWN_TEST_FILE", f"{MAP_DIR}/town_0.txt"
 )
 
-with open(MAP_DUNGEON_LEVEL_0_TXT_FILE, "r", encoding="utf-8") as dungeon_level_0:
-    MAP_DUNGEON_LEVEL_0_TXT: MapTiles = [
+with open(MAP_TOWN_TEST_FILE, "r", encoding="utf-8") as dungeon_level_0:
+    MAP_TOWN_TEST_TXT: MapTiles = [
         list(row) for row in dungeon_level_0.readlines()
     ]
 

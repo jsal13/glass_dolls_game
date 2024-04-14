@@ -24,7 +24,7 @@ def cesaer_cipher(text: str, shift_amount: int = 1) -> str:
 
 
 def substitution_cipher(text: str) -> tuple[str, TranslationTable]:
-    """Use a substition cipher in ``text`` according to a random letter mapping."""
+    """Use a substitution cipher in ``text`` according to a random letter mapping."""
 
     trans_table: TranslationTable = str.maketrans(
         dict(

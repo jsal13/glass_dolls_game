@@ -34,11 +34,11 @@ class Initializer:
                 ciphers.substitution_cipher(text=phrase)
             )
 
-            # Mongo requires string keys, normal transtables are
+            # Mongo requires string keys, normal trans-tables are
             # of the form {65: "Z", ...} for chr(65) = "A", etc.
-            substition_translation_table_str_keys = (
+            substitution_translation_table_str_keys = (
                 ciphers.translation_table_make_str_keys(
-                    translation_table=substitution_translation_table
+                    translation_table=substitution_translation_table_str_keys
                 )
             )
             payload.append(
@@ -46,7 +46,7 @@ class Initializer:
                     "phrase": phrase,
                     "substitution": {
                         "ciphertext": substitution_ciphertext,
-                        "translation_table": substition_translation_table_str_keys,
+                        "translation_table": ut,
                     },
                     "cesaer": {
                         "ciphertext": cesaer_ciphertext,

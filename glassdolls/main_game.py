@@ -29,7 +29,7 @@ class GameState(SignalSender):
         if data is not None:
             if data.get("direction") is not None:
                 potential_loc = self.player.loc + data["direction"]
-                if not self.map_state._is_collider(loc=potential_loc):
+                if not self.map_state.is_collider(loc=potential_loc):
                     self.player.loc = potential_loc
             else:
                 raise ValueError(f"Got {data}, not a dict with key 'direction'.")
@@ -89,12 +89,12 @@ if __name__ == "__main__":
         game_screen.description.title = "Hello!"
         # SIGNALS LATER.
 
-        intro_text = game_text.text["introduction"]
-        if isinstance(intro_text, str):
-            raise ValueError("Expected a list for `intro_text`.")
-        game_screen.description.display_dialogue(text_list=intro_text)
+        # intro_text = game_text.text["introduction"]
+        # if isinstance(intro_text, str):
+        #     raise ValueError("Expected a list for `intro_text`.")
+        # game_screen.description.display_dialogue(text_list=intro_text)
 
-        usr_input = game_screen.input_window.create_user_input()
+        # usr_input = game_screen.input_window.create_user_input()
 
         # Start the Game Stuff.
         while True:

@@ -153,7 +153,7 @@ class MapDisplay(Window, SignalSender):
         if self.current_map is None:
             raise ValueError("Must initialize map in MapDisplay.")
 
-        for jdx, row in enumerate(self.current_map.map_tiles):
+        for jdx, row in enumerate(self.current_map.visible_map_tiles):
             self.print_at(
                 x=0,
                 y=jdx,
@@ -177,6 +177,7 @@ class MapDisplay(Window, SignalSender):
             if data.get("location") is not None:
                 previous_loc = deepcopy(self.player_map_loc)
                 self.player_map_loc = data["location"]
+                self.current_map.update_visible(self.player_map_loc)
                 # self.update_player_loc(previous_loc=previous_loc)
                 self.display()
             else:
@@ -369,6 +370,11 @@ class GameScreen(SignalSender):
             + DESCRIPTION_HEIGHT
         )
         for idx in range(HORIZ_PADDING, MAX_SCREEN_WIDTH + 1):
-            self.term.addstr(_y, idx, ASCII_CODES["Horizontal"], self.color[LINE_COLOR])
+            # This is a curses error when trying to draw in the lower-
+            # right corner.  This is the solution.  Gross, I know.
+            try:
+                self.term.addstr(_y, idx, ASCII_CODES["Horizontal"], self.color[LINE_COLOR])
+            except curses.error:
+                pass
 
         self.term.refresh()
