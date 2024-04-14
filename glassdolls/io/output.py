@@ -160,17 +160,18 @@ class MapDisplay(Window, SignalSender):
                 color=self.map_color,
             )
 
+        # Print event symbols.
+        for loc in self.map_state.events.data.items():
+            self.print_at(x=loc[0].x, y=loc[0].y, text=loc[1].symbol, color=128*5)
+
         # Print Player loc.
+        # Always print player last so nothing overlaps it.
         self.print_at(
             x=self.player_loc.x,
             y=self.player_loc.y,
             text="@",
             color=self.player_color,
         )
-
-        # Print event symbols.
-        for loc in self.map_state.events.data.items():
-            self.print_at(x=loc[0].x, y=loc[0].y, text=loc[1].symbol, color=128*5)
 
         self.refresh()
 
