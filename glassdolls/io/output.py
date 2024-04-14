@@ -8,9 +8,7 @@ from attrs import define, field
 
 from glassdolls.utils import Loc
 from glassdolls.game.signals import SignalSender
-from glassdolls.game.maps import Map
-
-from blinker import NamedSignal, signal
+from glassdolls.game.maps import MapState
 
 from glassdolls.constants import (
     HORIZ_PADDING,
@@ -129,8 +127,8 @@ class InputWindow(Window):
 
 @define
 class MapDisplay(Window, SignalSender):
-    player_map_loc: Loc = field(init=False, default=Loc(0, 0))
-    _current_map: Map = field(init=False, repr=False, default=Map())
+    _map_state: MapState | None = field(repr=False, default=None)
+    player_loc: Loc = field(default=Loc(0, 0))
     map_color: int = field(default=0)
     player_color: int = field(default=512)
 
@@ -139,21 +137,22 @@ class MapDisplay(Window, SignalSender):
         curses.curs_set(0)
 
     @property
-    def current_map(self) -> Map:
-        return self._current_map
+    def map_state(self) -> MapState:
+        return self._map_state
 
-    @current_map.setter
-    def current_map(self, value: Map) -> None:
-        self._current_map = value
+    @map_state.setter
+    def map_state(self, value: MapState) -> None:
+        self._map_state = value
         self.display()
 
     def display(self) -> None:
         self.subwindow.erase()
 
-        if self.current_map is None:
+        if self.map_state is None:
             raise ValueError("Must initialize map in MapDisplay.")
-
-        for jdx, row in enumerate(self.current_map.visible_map_tiles):
+        
+        # Print map.
+        for jdx, row in enumerate(self.map_state.visible_map_tiles):
             self.print_at(
                 x=0,
                 y=jdx,
@@ -161,12 +160,18 @@ class MapDisplay(Window, SignalSender):
                 color=self.map_color,
             )
 
+        # Print Player loc.
         self.print_at(
-            x=self.player_map_loc.x,
-            y=self.player_map_loc.y,
+            x=self.player_loc.x,
+            y=self.player_loc.y,
             text="@",
             color=self.player_color,
         )
+
+        # Print event symbols.
+        for loc in self.map_state.events.data.items():
+            self.print_at(x=loc[0].x, y=loc[0].y, text=loc[1].symbol, color=128*5)
+
         self.refresh()
 
     def handle_player_loc_changed(
@@ -175,9 +180,9 @@ class MapDisplay(Window, SignalSender):
         self._log_handle_signal(signal=signal, data=data)
         if data is not None:
             if data.get("location") is not None:
-                previous_loc = deepcopy(self.player_map_loc)
-                self.player_map_loc = data["location"]
-                self.current_map.update_visible(self.player_map_loc)
+                previous_loc = deepcopy(self.player_loc)
+                self.player_loc = data["location"]
+                self.map_state.update_visible(self.player_loc)
                 # self.update_player_loc(previous_loc=previous_loc)
                 self.display()
             else:
@@ -287,57 +292,12 @@ class GameScreen(SignalSender):
 
     term: "curses._CursesWindow" = field(repr=False)
     color: Color = field(repr=False)
-    area_map: MapDisplay = field(init=False, repr=False)
-    options: DescriptionDisplay = field(init=False, repr=False)
-    description: DescriptionDisplay = field(init=False, repr=False)
-    input_window: InputWindow = field(init=False, repr=False)
+    map_display: MapDisplay = field(repr=False)
+    options: DescriptionDisplay | None = field(repr=False)
+    description: DescriptionDisplay | None = field(repr=False)
+    input_window: InputWindow | None = field(repr=False)
 
     def __attrs_post_init__(self) -> None:
-        self.area_map = MapDisplay(
-            loc_start=TERMINAL_XY_INIT_MAP,
-            height=MAP_HEIGHT,
-            width=MAP_WIDTH,
-            border=0,
-            border_color=0,
-            map_color=self.color[DUNGEON_WALL_COLOR],
-            player_color=self.color[PLAYER_COLOR],
-        )
-
-        self.options = DescriptionDisplay(
-            loc_start=TERMINAL_XY_INIT_MAP + Loc(MAP_WIDTH + (2 * HORIZ_PADDING), 0),
-            height=MAP_HEIGHT,
-            width=20,
-            border=0,
-            border_color=0,
-            text_color=self.color[OPTIONS_TEXT_COLOR],
-            title_color=self.color[OPTIONS_TITLE_COLOR],
-        )
-
-        self.description = DescriptionDisplay(
-            loc_start=TERMINAL_XY_INIT_MAP + Loc(0, MAP_HEIGHT + (2 * VERT_PADDING)),
-            height=DESCRIPTION_HEIGHT,
-            width=MAX_SCREEN_WIDTH,
-            border=0,
-            border_color=0,
-            text_color=self.color[DESC_TEXT_COLOR],
-            title_color=self.color[DESC_TITLE_COLOR],
-        )
-
-        self.input_window = InputWindow(
-            loc_start=Loc(
-                TERMINAL_XY_INIT_MAP.x,
-                TERMINAL_XY_INIT_MAP.y
-                + MAP_HEIGHT
-                + (2 * VERT_PADDING)
-                + DESCRIPTION_HEIGHT
-                + VERT_PADDING,
-            ),
-            height=1,
-            width=MAX_SCREEN_WIDTH - 5,
-            border=1,
-            border_color=self.color[INPUT_BORDER_COLOR],
-        )
-
         self.draw_lines()
         self.input_window.refresh()
         self.options.title = "Options"

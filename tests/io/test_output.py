@@ -79,9 +79,9 @@ def test_game_screen_refresh_display_runs() -> None:
     game_screen.refresh_display()
 
 
-def test_game_screen_handle_player_map_loc_updated_runs() -> None:
+def test_game_screen_handle_player_loc_updated_runs() -> None:
     game_screen = GameScreen(term=MagicMock())
-    game_screen.handle_player_map_loc_updated("test", data={"location": Loc(x=0, y=1)})
+    game_screen.handle_player_loc_updated("test", data={"location": Loc(x=0, y=1)})
 
 
 @patch("glassdolls.io.signals.logger")

@@ -14,3 +14,9 @@ class Loc:
 
     def astuple(self) -> tuple[int, int]:
         return (self.x, self.y)
+    
+    def __eq__(self, other: "Loc") -> bool:
+        return (self.x == other.x) & (self.y == other.y)
+
+    def __hash__(self) -> int:
+        return hash((self.x, self.y))

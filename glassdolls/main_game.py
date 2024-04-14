@@ -3,91 +3,108 @@ from typing import Any
 
 from attrs import define, field
 
-# from blinker import NamedSignal, signal
-
 from glassdolls.io.input import UserInput
-from glassdolls.io.output import GameScreen, GameText
+from glassdolls.io.output import GameScreen, GameText, MapDisplay, DescriptionDisplay, InputWindow
+from glassdolls.io.game import Game, GameState
+
 from glassdolls.game.player import PlayerState
-from glassdolls.game.signals import SignalSender
-from glassdolls.game.maps import Map
+from glassdolls.game.maps import MapState
+from glassdolls.game.events import Events, Event
 from glassdolls.utils import Loc
 
 from glassdolls import logger
 from glassdolls.io.utils import Color
+from glassdolls.constants import TERMINAL_XY_INIT_MAP, MAP_HEIGHT, MAP_WIDTH, MAP_TOWN_TEST_FILE, HORIZ_PADDING, VERT_PADDING, DESCRIPTION_HEIGHT, MAX_SCREEN_WIDTH
 
-
-@define
-class GameState(SignalSender):
-    player: PlayerState = field(repr=False)
-    map_state: Map = field(repr=False)
-
-    def handle_signal_player_input_attempt_movement(
-        self, signal: str | None = None, data: dict[str, Any] | None = None
-    ) -> None:
-        self._log_handle_signal(signal=signal, data=data)
-
-        if data is not None:
-            if data.get("direction") is not None:
-                potential_loc = self.player.loc + data["direction"]
-                if not self.map_state.is_collider(loc=potential_loc):
-                    self.player.loc = potential_loc
-            else:
-                raise ValueError(f"Got {data}, not a dict with key 'direction'.")
-        else:
-            raise ValueError("Got empty data package.")
-
-
-@define
-class Game(SignalSender):
-    term: "curses._CursesWindow" = field(repr=False)
-    game_screen: GameScreen = field(repr=False)
-    user_input: UserInput = field(repr=False)
-    player: PlayerState = field(repr=False)
-    game_state: GameState = field(repr=False, init=False)
-
-    def __attrs_post_init__(self) -> None:
-        self.game_state = GameState(
-            player=self.player, map_state=self.game_screen.area_map.current_map
-        )
-
-        # Updates map if player loc has changed.
-        self.player.signal_player_loc_changed.connect(
-            self.game_screen.area_map.handle_player_loc_changed
-        )
-
-        # Handles player movement if arrow is pressed.
-        self.user_input.signal_player_input_attempt_movement.connect(
-            self.game_state.handle_signal_player_input_attempt_movement
-        )
-
+PLAYER_COLOR = "CYAN"
+DESC_TITLE_COLOR = "CYAN"
+DESC_TEXT_COLOR = "WHITE"
+OPTIONS_TITLE_COLOR = "CYAN"
+OPTIONS_TEXT_COLOR = "WHITE"
+LINE_COLOR = "YELLOW"
+DUNGEON_WALL_COLOR = "WHITE"
+INPUT_BORDER_COLOR = "CYAN"
 
 if __name__ == "__main__":
-    import time
-
+    
     def run(term: "curses._CursesWindow") -> None:
+        import time
         color = Color()
+
+        # Text, Towns, Dungeons.
         game_text = GameText()
 
-        # Initialize Game States, Screen, Input.
-        player = PlayerState()
-        game_screen = GameScreen(term=term, color=color)
-        game_screen.draw_lines()
-        game_screen.options.display()
+        # Events, Map, and Player States.
+        events = Events(data={Loc(5, 3): Event(loc=Loc(5, 3))})  # Initial events.
+        map_state = MapState(events=events, map_file=MAP_TOWN_TEST_FILE)
+        player_state = PlayerState()
+
+        # Join Player + Map states together so they can communicate nicely.
+        game_state = GameState(player_state=player_state, map_state=map_state)
+
+        # Terminal Output Classes
+        map_display = MapDisplay(
+                    loc_start=TERMINAL_XY_INIT_MAP,
+                    map_state=map_state,
+                    height=MAP_HEIGHT,
+                    width=MAP_WIDTH,
+                    border=0,
+                    border_color=0,
+                    map_color=color[DUNGEON_WALL_COLOR],
+                    player_color=color[PLAYER_COLOR],
+                )
+        
+        options = DescriptionDisplay(
+            loc_start=TERMINAL_XY_INIT_MAP + Loc(MAP_WIDTH + (2 * HORIZ_PADDING), 0),
+            height=MAP_HEIGHT,
+            width=20,
+            border=0,
+            border_color=0,
+            text_color=color[OPTIONS_TEXT_COLOR],
+            title_color=color[OPTIONS_TITLE_COLOR],
+        )
+
+        description = DescriptionDisplay(
+            loc_start=TERMINAL_XY_INIT_MAP + Loc(0, MAP_HEIGHT + (2 * VERT_PADDING)),
+            height=DESCRIPTION_HEIGHT,
+            width=MAX_SCREEN_WIDTH,
+            border=0,
+            border_color=0,
+            text_color=color[DESC_TEXT_COLOR],
+            title_color=color[DESC_TITLE_COLOR],
+        )
+
+        input_window = InputWindow(
+            loc_start=Loc(
+                TERMINAL_XY_INIT_MAP.x,
+                TERMINAL_XY_INIT_MAP.y
+                + MAP_HEIGHT
+                + (2 * VERT_PADDING)
+                + DESCRIPTION_HEIGHT
+                + VERT_PADDING,
+            ),
+            height=1,
+            width=MAX_SCREEN_WIDTH - 5,
+            border=1,
+            border_color=color[INPUT_BORDER_COLOR],
+        )
+
+        # Combines windows into the terminal output screen.
+        game_screen = GameScreen(term=term, color=color, map_display=map_display, options=options, description=description, input_window=input_window)
+
+        # game_screen.draw_lines()
+        # game_screen.options.display()
         user_input = UserInput()
 
         game = Game(
-            term=term, game_screen=game_screen, user_input=user_input, player=player
+            term=term, game_screen=game_screen, user_input=user_input, game_state=game_state
         )
 
-        game_state = GameState(
-            player=player, map_state=game.game_screen.area_map.current_map
-        )
-
-        # INITIALIZE VALUES.  (Must come after `Game` init.)
-        player.loc = Loc(2, 2)
-
+        # GAME STATE AND DISPLAY COMPLETE, INITIALIZING VALUES.
+        # (Must come after `Game` init.)
+        player_state.loc = Loc(2, 2)
         game_screen.description.title = "Hello!"
-        # SIGNALS LATER.
+            
 
         # intro_text = game_text.text["introduction"]
         # if isinstance(intro_text, str):
@@ -96,7 +113,7 @@ if __name__ == "__main__":
 
         # usr_input = game_screen.input_window.create_user_input()
 
-        # Start the Game Stuff.
+        # Start the Game and wait for the user.
         while True:
             game.user_input.wait_for_key()
 

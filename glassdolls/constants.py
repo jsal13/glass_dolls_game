@@ -86,3 +86,7 @@ USER_MOVEMENT = {
     "KEY_DOWN": Loc(0, 1),
     "KEY_UP": Loc(0, -1),
 }
+
+
+# FRONTEND
+FE_URI = "http://localhost:8501"
