@@ -6,7 +6,7 @@ from blinker import signal, NamedSignal
 
 from glassdolls import logger
 from glassdolls.constants import USER_MOVEMENT
-from glassdolls.game.signals import SignalSender
+from glassdolls.state.signals import SignalSender
 
 
 @define
@@ -16,6 +16,7 @@ class UserInput(SignalSender):
     # Signals
     signal_user_input: NamedSignal = field(init=False, repr=False)
     signal_player_input_attempt_movement: NamedSignal = field(init=False, repr=False)
+    signal_player_input_attempt_look: NamedSignal = field(init=False, repr=False)
     signal_key_pressed: NamedSignal = field(init=False, repr=False)
 
     def __attrs_post_init__(self) -> None:
@@ -31,6 +32,9 @@ class UserInput(SignalSender):
         self.signal_user_input = signal(f"{self.__class__.__name__}_user_input")
         self.signal_player_input_attempt_movement = signal(
             f"{self.__class__.__name__}_player_input_movement"
+        )
+        self.signal_player_input_attempt_look = signal(
+            f"{self.__class__.__name__}_player_input_look"
         )
 
     def wait_for_key(self) -> str:
@@ -48,10 +52,16 @@ class UserInput(SignalSender):
         upper_key_value = key_value.upper()
 
         if upper_key_value in USER_MOVEMENT:
-            player_movement = USER_MOVEMENT[key_value]
+            val = USER_MOVEMENT[key_value]
             self.send_signal(
                 self.signal_player_input_attempt_movement,
-                data={"direction": player_movement},
+                data={"direction": val},
+            )
+        elif upper_key_value == "L":  # Look
+            logger.debug(f"User input 'Look'.")
+            self.send_signal(
+                self.signal_player_input_attempt_look,
+                data=None,
             )
         elif upper_key_value == "Q":
             sys.exit(0)

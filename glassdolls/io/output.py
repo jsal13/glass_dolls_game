@@ -6,8 +6,8 @@ from copy import deepcopy
 from attrs import define, field
 
 from glassdolls.utils import Loc
-from glassdolls.game.signals import SignalSender
-from glassdolls.game.maps import MapState
+from glassdolls.state.signals import SignalSender
+from glassdolls.state.maps import MapState
 
 from glassdolls.constants import (
     HORIZ_PADDING,

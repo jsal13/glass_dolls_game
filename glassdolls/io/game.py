@@ -5,32 +5,11 @@ from attrs import define, field
 
 from glassdolls.io.input import UserInput
 from glassdolls.io.output import GameScreen
-from glassdolls.game.player import PlayerState
-from glassdolls.game.signals import SignalSender
-from glassdolls.game.maps import MapState
+from glassdolls.state.signals import SignalSender
+from glassdolls.state.game import GameState
+from glassdolls.state.events import Event
 
 from glassdolls import logger
-
-
-@define
-class GameState(SignalSender):
-    player_state: PlayerState = field(repr=False, default=PlayerState())
-    map_state: MapState = field(repr=False, default=MapState())
-
-    def handle_signal_player_input_attempt_movement(
-        self, signal: str | None = None, data: dict[str, Any] | None = None
-    ) -> None:
-        self._log_handle_signal(signal=signal, data=data)
-
-        if data is not None:
-            if data.get("direction") is not None:
-                potential_loc = self.player_state.loc + data["direction"]
-                if not self.map_state.is_collider(loc=potential_loc):
-                    self.player_state.loc = potential_loc
-            else:
-                raise ValueError(f"Got {data}, not a dict with key 'direction'.")
-        else:
-            raise ValueError("Got empty data package.")
 
 
 @define
@@ -52,4 +31,33 @@ class Game(SignalSender):
         # Handles player movement if arrow is pressed.
         self.user_input.signal_player_input_attempt_movement.connect(
             self.game_state.handle_signal_player_input_attempt_movement
+        )  # Connect Input -> Player
+
+        # Handles player "look" action.
+        self.user_input.signal_player_input_attempt_look.connect(
+            self.game_state.player_state.handle_signal_player_input_attempt_look
+        )  # Connect Input -> Player
+        self.game_state.player_state.signal_player_look.connect(
+            self.game_state.map_state.handle_signal_player_look
+        )  # Connect Player -> Map State (Events)
+        self.game_state.map_state.signal_player_looked_at_event.connect(
+            self.handle_signal_player_looked_at_event
         )
+
+    def handle_signal_player_looked_at_event(
+        self, signal: str | None = None, data: dict[str, Any] | None = None
+    ) -> None:
+        self._log_handle_signal(signal=signal, data=data)
+
+        if data is not None:
+            event = data.get("event")
+            if (event is not None) and (isinstance(event, Event)):
+                self.game_screen.description.title = event.etype
+                self.game_screen.description.text = event.uri
+
+            else:
+                raise ValueError(
+                    f"Got {data}, not a dict with key 'event' of type Event."
+                )
+        else:
+            raise ValueError("Got empty data package.")

@@ -8,11 +8,12 @@ from glassdolls.io.output import (
     DescriptionDisplay,
     InputWindow,
 )
-from glassdolls.io.game import Game, GameState
+from glassdolls.io.game import Game
 
-from glassdolls.game.player import PlayerState
-from glassdolls.game.maps import MapState
-from glassdolls.game.events import Events, Event
+from glassdolls.state.player import PlayerState
+from glassdolls.state.game import GameState
+from glassdolls.state.maps import MapState
+from glassdolls.state.events import Events, Event
 from glassdolls.utils import Loc
 
 from glassdolls import logger
