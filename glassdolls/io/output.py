@@ -1,4 +1,3 @@
-import time
 import textwrap
 import json
 import curses
@@ -20,11 +19,8 @@ from glassdolls.constants import (
     ASCII_CODES,
     DATA_GAME_DIALOGUE,
     DESCRIPTION_HEIGHT,
+    USER_INPUT_OPTIONS,
 )
-from glassdolls.io.utils import Color
-
-USER_INPUT_OPTIONS = "(←↑→↓) Move\n(L)ook\n(U)se\n(I)nventory"
-
 
 PLAYER_COLOR = "CYAN"
 DESC_TITLE_COLOR = "CYAN"
@@ -127,7 +123,7 @@ class InputWindow(Window):
 
 @define
 class MapDisplay(Window, SignalSender):
-    _map_state: MapState | None = field(repr=False, default=None)
+    _map_state: MapState = field(repr=False, default=MapState())
     player_loc: Loc = field(default=Loc(0, 0))
     map_color: int = field(default=0)
     player_color: int = field(default=512)
@@ -150,7 +146,7 @@ class MapDisplay(Window, SignalSender):
 
         if self.map_state is None:
             raise ValueError("Must initialize map in MapDisplay.")
-        
+
         # Print map.
         for jdx, row in enumerate(self.map_state.visible_map_tiles):
             self.print_at(
@@ -162,7 +158,7 @@ class MapDisplay(Window, SignalSender):
 
         # Print event symbols.
         for loc in self.map_state.events.data.items():
-            self.print_at(x=loc[0].x, y=loc[0].y, text=loc[1].symbol, color=128*5)
+            self.print_at(x=loc[0].x, y=loc[0].y, text=loc[1].symbol, color=128 * 5)
 
         # Print Player loc.
         # Always print player last so nothing overlaps it.
@@ -207,26 +203,26 @@ class GameText:
 
 @define
 class DescriptionDisplay(Window, SignalSender):
-    _title: str | None = field(default=None)
-    _text: str | None = field(default=None, repr=False)
+    _title: str = field(default="")
+    _text: str = field(default="")
     title_color: int = field(default=256)
     text_color: int = field(default=0)
 
     @property
-    def title(self) -> str | None:
+    def title(self) -> str:
         return self._title
 
     @title.setter
-    def title(self, value: str | None) -> None:
+    def title(self, value: str) -> None:
         self._title = value
         self.display()
 
     @property
-    def text(self) -> str | None:
+    def text(self) -> str:
         return self._text
 
     @text.setter
-    def text(self, value: str | None) -> None:
+    def text(self, value: str) -> None:
         self._text = value
         self.display()
 
@@ -236,7 +232,7 @@ class DescriptionDisplay(Window, SignalSender):
 
     def display(self) -> None:
         self.subwindow.clear()
-        if self.title is not None:
+        if self.title != "":
             self.print_at(x=0, y=0, text=self.title, color=self.title_color)
             self.print_at(
                 x=0,
@@ -245,7 +241,7 @@ class DescriptionDisplay(Window, SignalSender):
                 color=self.title_color,
             )
 
-        if self.text is not None:
+        if self.text != "":
             wrapped_text = textwrap.wrap(
                 self.text,
                 width=MAX_SCREEN_WIDTH - 5,
@@ -291,36 +287,34 @@ class DescriptionDisplay(Window, SignalSender):
 class GameScreen(SignalSender):
     """Combines the Display elements into a full game screen."""
 
-    term: "curses._CursesWindow" = field(repr=False)
-    color: Color = field(repr=False)
-    map_display: MapDisplay = field(repr=False)
-    options: DescriptionDisplay | None = field(repr=False)
-    description: DescriptionDisplay | None = field(repr=False)
-    input_window: InputWindow | None = field(repr=False)
-
-    def __attrs_post_init__(self) -> None:
-        self.draw_lines()
-        self.input_window.refresh()
-        self.options.title = "Options"
-        self.options.text = USER_INPUT_OPTIONS
+    term: "curses._CursesWindow" = field(repr=False, default=curses.initscr())
+    color_map: dict[str, int] = field(repr=False, default={})
+    map_display: MapDisplay = field(repr=False, default=MapDisplay())
+    options: DescriptionDisplay = field(repr=False, default=DescriptionDisplay())
+    description: DescriptionDisplay = field(repr=False, default=DescriptionDisplay())
+    input_window: InputWindow = field(repr=False, default=InputWindow())
 
     def draw_lines(self) -> None:
         # Vertical
         _x = TERMINAL_XY_INIT_MAP.x + MAP_WIDTH + HORIZ_PADDING
         for jdx in range(VERT_PADDING, TERMINAL_XY_INIT_MAP.y + MAP_HEIGHT + 1):
-            self.term.addstr(jdx, _x, ASCII_CODES["Vertical"], self.color[LINE_COLOR])
+            self.term.addstr(
+                jdx, _x, ASCII_CODES["Vertical"], self.color_map[LINE_COLOR]
+            )
 
         # Horizontal
         _y = TERMINAL_XY_INIT_MAP.y + MAP_HEIGHT + VERT_PADDING
         for idx in range(HORIZ_PADDING, MAX_SCREEN_WIDTH + 1):
-            self.term.addstr(_y, idx, ASCII_CODES["Horizontal"], self.color[LINE_COLOR])
+            self.term.addstr(
+                _y, idx, ASCII_CODES["Horizontal"], self.color_map[LINE_COLOR]
+            )
 
         # Crossings
         self.term.addstr(
             TERMINAL_XY_INIT_MAP.y + MAP_HEIGHT + VERT_PADDING,
             TERMINAL_XY_INIT_MAP.x + MAP_WIDTH + HORIZ_PADDING,
             ASCII_CODES["ULR_Crossing"],
-            self.color[LINE_COLOR],
+            self.color_map[LINE_COLOR],
         )
 
         # Under Description, horizontal.
@@ -334,7 +328,9 @@ class GameScreen(SignalSender):
             # This is a curses error when trying to draw in the lower-
             # right corner.  This is the solution.  Gross, I know.
             try:
-                self.term.addstr(_y, idx, ASCII_CODES["Horizontal"], self.color[LINE_COLOR])
+                self.term.addstr(
+                    _y, idx, ASCII_CODES["Horizontal"], self.color_map[LINE_COLOR]
+                )
             except curses.error:
                 pass
 

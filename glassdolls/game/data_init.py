@@ -1,5 +1,6 @@
 import random
 
+from glassdolls._types import SpellChantList
 from glassdolls.puzzle_generation import basic_math, ciphers, phrases, spells
 from glassdolls.utils.db_clients import MongoDB, PostgresDB
 
@@ -14,7 +15,7 @@ class Initializer:
         self.pg.connect()
         self.mongodb.connect()
 
-    def populate_spell_table(self, spell_mapping: spells.SpellChantList) -> None:
+    def populate_spell_table(self, spell_mapping: SpellChantList) -> None:
         for spell, syllables in spell_mapping.items():
             self.pg.insert_values(
                 table="spells", cols=("spell", "syllables"), values=(spell, syllables)
@@ -38,7 +39,7 @@ class Initializer:
             # of the form {65: "Z", ...} for chr(65) = "A", etc.
             substitution_translation_table_str_keys = (
                 ciphers.translation_table_make_str_keys(
-                    translation_table=substitution_translation_table_str_keys
+                    translation_table=substitution_translation_table
                 )
             )
             payload.append(
@@ -46,7 +47,7 @@ class Initializer:
                     "phrase": phrase,
                     "substitution": {
                         "ciphertext": substitution_ciphertext,
-                        "translation_table": ut,
+                        "translation_table": substitution_translation_table_str_keys,
                     },
                     "cesaer": {
                         "ciphertext": cesaer_ciphertext,
@@ -60,7 +61,7 @@ class Initializer:
     def initialize_all(self) -> None:
         """Initialize all dbs."""
         # Spells
-        spell_mapping: spells.SpellChantList = spells.generate_spells(
+        spell_mapping: SpellChantList = spells.generate_spells(
             syllables_list=spells.generate_random_syllables(),
             spell_list=spells.SPELL_LIST,
         )

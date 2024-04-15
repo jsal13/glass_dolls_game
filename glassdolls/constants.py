@@ -30,14 +30,10 @@ with open(MAP_LEGEND_JSON_FILE, "r", encoding="utf-8") as map_legend_json:
     MAP_LEGEND_JSON: dict[str, dict[str, str]] = json.load(map_legend_json)
 
 # How do we do type hints on this stuff from, say, the map file?
-MAP_TOWN_TEST_FILE = os.getenv(
-    "MAP_TOWN_TEST_FILE", f"{MAP_DIR}/town_0.txt"
-)
+MAP_TOWN_TEST_FILE = os.getenv("MAP_TOWN_TEST_FILE", f"{MAP_DIR}/town_0.txt")
 
 with open(MAP_TOWN_TEST_FILE, "r", encoding="utf-8") as dungeon_level_0:
-    MAP_TOWN_TEST_TXT: MapTiles = [
-        list(row) for row in dungeon_level_0.readlines()
-    ]
+    MAP_TOWN_TEST_TXT: MapTiles = [list(row) for row in dungeon_level_0.readlines()]
 
 
 # DB
@@ -86,6 +82,7 @@ USER_MOVEMENT = {
     "KEY_DOWN": Loc(0, 1),
     "KEY_UP": Loc(0, -1),
 }
+USER_INPUT_OPTIONS = "(←↑→↓) Move\n(L)ook\n(U)se\n(I)nventory"
 
 
 # FRONTEND

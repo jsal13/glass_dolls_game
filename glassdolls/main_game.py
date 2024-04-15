@@ -1,10 +1,13 @@
 import curses
-from typing import Any
-
-from attrs import define, field
 
 from glassdolls.io.input import UserInput
-from glassdolls.io.output import GameScreen, GameText, MapDisplay, DescriptionDisplay, InputWindow
+from glassdolls.io.output import (
+    GameScreen,
+    GameText,
+    MapDisplay,
+    DescriptionDisplay,
+    InputWindow,
+)
 from glassdolls.io.game import Game, GameState
 
 from glassdolls.game.player import PlayerState
@@ -13,8 +16,18 @@ from glassdolls.game.events import Events, Event
 from glassdolls.utils import Loc
 
 from glassdolls import logger
-from glassdolls.io.utils import Color
-from glassdolls.constants import TERMINAL_XY_INIT_MAP, MAP_HEIGHT, MAP_WIDTH, MAP_TOWN_TEST_FILE, HORIZ_PADDING, VERT_PADDING, DESCRIPTION_HEIGHT, MAX_SCREEN_WIDTH
+from glassdolls.io.utils import get_color_map
+from glassdolls.constants import (
+    TERMINAL_XY_INIT_MAP,
+    MAP_HEIGHT,
+    MAP_WIDTH,
+    MAP_TOWN_TEST_FILE,
+    HORIZ_PADDING,
+    VERT_PADDING,
+    DESCRIPTION_HEIGHT,
+    MAX_SCREEN_WIDTH,
+    USER_INPUT_OPTIONS,
+)
 
 PLAYER_COLOR = "CYAN"
 DESC_TITLE_COLOR = "CYAN"
@@ -26,10 +39,11 @@ DUNGEON_WALL_COLOR = "WHITE"
 INPUT_BORDER_COLOR = "CYAN"
 
 if __name__ == "__main__":
-    
+
     def run(term: "curses._CursesWindow") -> None:
         import time
-        color = Color()
+
+        color_map = get_color_map()
 
         # Text, Towns, Dungeons.
         game_text = GameText()
@@ -44,25 +58,27 @@ if __name__ == "__main__":
 
         # Terminal Output Classes
         map_display = MapDisplay(
-                    loc_start=TERMINAL_XY_INIT_MAP,
-                    map_state=map_state,
-                    height=MAP_HEIGHT,
-                    width=MAP_WIDTH,
-                    border=0,
-                    border_color=0,
-                    map_color=color[DUNGEON_WALL_COLOR],
-                    player_color=color[PLAYER_COLOR],
-                )
-        
+            loc_start=TERMINAL_XY_INIT_MAP,
+            map_state=map_state,
+            height=MAP_HEIGHT,
+            width=MAP_WIDTH,
+            border=0,
+            border_color=0,
+            map_color=color_map[DUNGEON_WALL_COLOR],
+            player_color=color_map[PLAYER_COLOR],
+        )
+
         options = DescriptionDisplay(
             loc_start=TERMINAL_XY_INIT_MAP + Loc(MAP_WIDTH + (2 * HORIZ_PADDING), 0),
             height=MAP_HEIGHT,
             width=20,
             border=0,
             border_color=0,
-            text_color=color[OPTIONS_TEXT_COLOR],
-            title_color=color[OPTIONS_TITLE_COLOR],
+            text_color=color_map[OPTIONS_TEXT_COLOR],
+            title_color=color_map[OPTIONS_TITLE_COLOR],
         )
+        options.title = "Options"
+        options.text = USER_INPUT_OPTIONS
 
         description = DescriptionDisplay(
             loc_start=TERMINAL_XY_INIT_MAP + Loc(0, MAP_HEIGHT + (2 * VERT_PADDING)),
@@ -70,9 +86,10 @@ if __name__ == "__main__":
             width=MAX_SCREEN_WIDTH,
             border=0,
             border_color=0,
-            text_color=color[DESC_TEXT_COLOR],
-            title_color=color[DESC_TITLE_COLOR],
+            text_color=color_map[DESC_TEXT_COLOR],
+            title_color=color_map[DESC_TITLE_COLOR],
         )
+        description.title = "Hello!"
 
         input_window = InputWindow(
             loc_start=Loc(
@@ -86,25 +103,32 @@ if __name__ == "__main__":
             height=1,
             width=MAX_SCREEN_WIDTH - 5,
             border=1,
-            border_color=color[INPUT_BORDER_COLOR],
+            border_color=color_map[INPUT_BORDER_COLOR],
         )
 
         # Combines windows into the terminal output screen.
-        game_screen = GameScreen(term=term, color=color, map_display=map_display, options=options, description=description, input_window=input_window)
+        game_screen = GameScreen(
+            term=term,
+            color_map=color_map,
+            map_display=map_display,
+            options=options,
+            description=description,
+            input_window=input_window,
+        )
 
-        # game_screen.draw_lines()
-        # game_screen.options.display()
         user_input = UserInput()
 
         game = Game(
-            term=term, game_screen=game_screen, user_input=user_input, game_state=game_state
+            term=term,
+            game_screen=game_screen,
+            user_input=user_input,
+            game_state=game_state,
         )
 
         # GAME STATE AND DISPLAY COMPLETE, INITIALIZING VALUES.
         # (Must come after `Game` init.)
-        player_state.loc = Loc(2, 2)
-        game_screen.description.title = "Hello!"
-            
+        game_screen.map_display.display()
+        game_state.player_state.loc = Loc(3, 1)
 
         # intro_text = game_text.text["introduction"]
         # if isinstance(intro_text, str):

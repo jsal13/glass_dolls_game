@@ -4,21 +4,18 @@ from typing import Any
 from attrs import define, field
 
 from glassdolls.io.input import UserInput
-from glassdolls.io.output import GameScreen, GameText
+from glassdolls.io.output import GameScreen
 from glassdolls.game.player import PlayerState
 from glassdolls.game.signals import SignalSender
 from glassdolls.game.maps import MapState
-from glassdolls.game.events import Events, Event
-from glassdolls.utils import Loc
 
 from glassdolls import logger
-from glassdolls.io.utils import Color
 
 
 @define
 class GameState(SignalSender):
-    player_state: PlayerState = field(repr=False)
-    map_state: MapState = field(repr=False)
+    player_state: PlayerState = field(repr=False, default=PlayerState())
+    map_state: MapState = field(repr=False, default=MapState())
 
     def handle_signal_player_input_attempt_movement(
         self, signal: str | None = None, data: dict[str, Any] | None = None
@@ -39,11 +36,14 @@ class GameState(SignalSender):
 @define
 class Game(SignalSender):
     term: "curses._CursesWindow" = field(repr=False)
-    game_screen: GameScreen = field(repr=False)
-    user_input: UserInput = field(repr=False)
-    game_state: GameState = field(repr=False)
+    game_screen: GameScreen = field(repr=False, default=GameScreen())
+    user_input: UserInput = field(repr=False, default=UserInput())
+    game_state: GameState = field(repr=False, default=GameState())
 
     def __attrs_post_init__(self) -> None:
+        self.game_screen.draw_lines()
+        self.game_screen.term.refresh()
+
         # Updates map if player loc has changed.
         self.game_state.player_state.signal_player_loc_changed.connect(
             self.game_screen.map_display.handle_player_loc_changed

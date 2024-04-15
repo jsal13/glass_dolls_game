@@ -23,8 +23,7 @@ class PlayerState(SignalSender):
             f"{self.__class__.__name__}_player_loc_changed"
         )
 
-        # Initialize Loc.
-        self.loc = Loc(0, 0)
+        self.loc = Loc(0, 0)  # Initialize Loc.
 
     @property
     def loc(self) -> Loc:
