@@ -19,8 +19,11 @@ _DB_Client: TypeAlias = (
 class DBClient(ABC):
     """Base Helper Client for DBs."""
 
-    def __init__(self, db: str | None = "glassdolls") -> None:
+    def __init__(
+        self, db: str | None = "glassdolls", connection_string: str | None = None
+    ) -> None:
         self.client: _DB_Client | None = None
+        self.connection_string = connection_string
         self.db = db
 
     @abstractmethod
@@ -45,8 +48,10 @@ class MongoDB(DBClient):
     def connect(self) -> None:
         if self.client is None:
             # PyMongo requires you to use [self.db] to define the db it's using.
+            if self.connection_string is None:
+                self.connection_string = MONGO_CONNECTION_STRING
             self.client: MongoClient[dict[str, Any]] = MongoClient(
-                host=MONGO_CONNECTION_STRING
+                host=self.connection_string
             )[self.db]
 
     def insert_values(self, collection: str, values: list[dict[str, Any]]) -> None:

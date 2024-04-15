@@ -39,7 +39,9 @@ services:
       ME_CONFIG_MONGODB_URL: mongodb://admin:example@db-mongo:27017/
 
   fe:
-    build: ./glassdolls/frontend
+    build: 
+      dockerfile: ./glassdolls/frontend/Dockerfile
+      context: .
     restart: always
     ports:
       - 8501:8501
@@ -47,4 +49,4 @@ services:
       watch:
         - action: sync
           path: ./glassdolls/frontend/app.py
-          target: /app/app.py
+          target: /app/glassdolls/frontend/app.py

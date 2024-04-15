@@ -11,8 +11,11 @@ COPY . .
 ENV VIRTUAL_ENV=/usr/local
 RUN pip install uv && uv pip install --no-cache -r requirements.txt
 
+# TODO: Remove the following line after integrating the API.
+RUN pip install .
+
 EXPOSE 8501
 
 # HEALTHCHECK CMD curl --fail http://localhost:8501/_stcore/health
 
-ENTRYPOINT ["streamlit", "run", "app.py", "--server.port=8501", "--server.address=0.0.0.0"]
+ENTRYPOINT ["streamlit", "run", "/app/glassdolls/frontend/app.py", "--server.port=8501", "--server.address=0.0.0.0"]
