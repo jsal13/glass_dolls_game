@@ -55,7 +55,7 @@ def check_solution(code: str, user_solution: str) -> None:
     if get_solution(code) == user_solution:
         solution_check_container.text("You did it!")
     else:
-        solution_check_container.text("You did not do it!")
+        solution_check_container.text("You did NOT do it!")
 
 
 code = code_submit_container.text_input(label="Input Code Here", max_chars=128)

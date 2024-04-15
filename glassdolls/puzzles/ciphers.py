@@ -23,10 +23,10 @@ def cesaer_cipher(text: str, shift_amount: int = 1) -> str:
     return text.upper().translate(translation_table)
 
 
-def substitution_cipher(text: str) -> tuple[str, TranslationTable]:
+def make_substitution_cipher_translation_table() -> TranslationTable:
     """Use a substitution cipher in ``text`` according to a random letter mapping."""
 
-    trans_table: TranslationTable = str.maketrans(
+    return str.maketrans(
         dict(
             zip(
                 list(string.ascii_uppercase),
@@ -35,7 +35,11 @@ def substitution_cipher(text: str) -> tuple[str, TranslationTable]:
         )
     )
 
-    return (text.translate(trans_table), trans_table)
+
+def apply_substitution_cipher(text: str, translation_table: TranslationTable) -> str:
+    """Use a substitution cipher in ``text`` according to a random letter mapping."""
+
+    return text.translate(translation_table)
 
 
 def translation_table_make_str_keys(

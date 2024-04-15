@@ -1,9 +1,11 @@
 import pytest
 
-from glassdolls.puzzle_generation.basic_math import (add_n_numbers,
-                                                     generate_boss_prime,
-                                                     generate_composite_int,
-                                                     generate_large_prime)
+from glassdolls.puzzles.basic_math import (
+    add_n_numbers,
+    generate_boss_prime,
+    generate_composite_int,
+    generate_large_prime,
+)
 
 
 @pytest.fixture()

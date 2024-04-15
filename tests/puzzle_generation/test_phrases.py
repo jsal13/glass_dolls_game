@@ -3,7 +3,7 @@ from unittest.mock import mock_open, patch
 import pytest
 
 from glassdolls.constants import DATA_RANDOM_PHRASE_EN_XML
-from glassdolls.puzzle_generation.phrases import get_phrase_list
+from glassdolls.puzzles.phrases import get_phrase_list
 
 
 @pytest.fixture()

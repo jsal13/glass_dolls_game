@@ -1,9 +1,11 @@
 import numpy as np
 import pytest
 
-from glassdolls.puzzle_generation.spells import (SpellChantList,
-                                                 generate_random_syllables,
-                                                 generate_spells)
+from glassdolls.puzzles.mantras import (
+    SpellChantList,
+    generate_random_syllables,
+    generate_spells,
+)
 
 
 @pytest.fixture()

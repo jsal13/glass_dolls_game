@@ -52,8 +52,8 @@ class Game(SignalSender):
         if data is not None:
             event = data.get("event")
             if (event is not None) and (isinstance(event, Event)):
-                self.game_screen.description.title = event.etype
-                self.game_screen.description.text = event.uri
+                self.game_screen.description.title = "Event"
+                self.game_screen.description.text = event.text + "\n\n" + event.uri
 
             else:
                 raise ValueError(

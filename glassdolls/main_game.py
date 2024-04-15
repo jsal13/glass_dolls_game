@@ -50,7 +50,7 @@ if __name__ == "__main__":
         game_text = GameText()
 
         # Events, Map, and Player States.
-        events = Events(data={Loc(5, 3): Event(loc=Loc(5, 3))})  # Initial events.
+        events = Events(data={Loc(5, 3): Event()})  # Initial events.
         map_state = MapState(events=events, map_file=MAP_TOWN_TEST_FILE)
         player_state = PlayerState()
 

@@ -1,3 +1,4 @@
+from enum import Enum, auto
 from attrs import define, field
 
 from glassdolls.utils import Loc
@@ -5,15 +6,19 @@ from glassdolls import logger
 from glassdolls.constants import FE_URI
 
 
+class EventType(Enum):
+    puzzle = auto()
+    person = auto()
+
+
 @define
 class Event:
-    # TODO: Should these have locs in them?
-    loc: Loc = field(default=Loc(0, 0))
-    etype: str = field(default="General")
+    etype: EventType = field(default=EventType.puzzle)
     symbol: str = field(default="∮")
     uri: str = field(default=FE_URI)
     color: str = field(default="RED")
     active: bool = field(default=True)
+    text: str = field(default=f"This is a test Event.")
 
     def __attrs_post_init__(self) -> None:
         pass

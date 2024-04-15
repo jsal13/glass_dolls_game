@@ -3,6 +3,12 @@ set shell := ["zsh", "-cu"]
 default:
   just --list
 
+up:
+  docker compose up --remove-orphans -w
+
+down:
+  docker compose down --remove-orphans --volumes
+
 docs-serve:
   mkdocs serve
 

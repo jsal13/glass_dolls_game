@@ -13,8 +13,7 @@ DATA_DIR = os.getenv("DATA_DIR", "data")
 DATA_SYLLABLE_FILE_LOC: str = os.getenv(
     "DATA_SYLLABLE_FILE_LOC", f"{DATA_DIR}/syllables.json"
 )
-DATA_SPELLS_FILE_LOC: str = os.getenv("DATA_SPELLS_FILE_LOC", f"{DATA_DIR}/spells.json")
-DATA_PRIMES_FILE_LOC: str = os.getenv("DATA_PRIMES_FILE_LOC", f"{DATA_DIR}/primes.json")
+DATA_PRIMES_FILE_LOC: str = os.getenv("DATA_PRIMES_FILE_LOC", f"{DATA_DIR}/primes.csv")
 DATA_RANDOM_PHRASE_EN_XML: str = os.getenv(
     "DATA_RANDOM_PHRASE_EN_XML", f"{DATA_DIR}/random_phrases_en.xml"
 )
@@ -40,9 +39,9 @@ with open(MAP_TOWN_TEST_FILE, "r", encoding="utf-8") as dungeon_level_0:
 MONGO_CONNECTION_STRING: str = os.getenv(
     "MONGO_CONNECTION_STRING", "mongodb://admin:example@localhost:27017"
 )
-PG_CONNECTION_STRING: str = os.getenv(
-    "PG_CONNECTION_STRING", "postgresql://admin:example@localhost:5432"
-)
+# PG_CONNECTION_STRING: str = os.getenv(
+#     "PG_CONNECTION_STRING", "postgresql://admin:example@localhost:5432"
+# )
 
 # PUZZLE METADATA
 DIFFICULTY_RANK = {

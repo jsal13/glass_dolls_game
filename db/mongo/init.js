@@ -1,3 +1,3 @@
 db = new Mongo().getDB("glassdolls");
 
-db.createCollection('phrases', { capped: false });
+db.createCollection('factions', { capped: false });

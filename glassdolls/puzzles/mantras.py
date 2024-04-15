@@ -2,17 +2,13 @@ import json
 
 import numpy as np
 
-from glassdolls._types import SpellChantList, SyllableList
-from glassdolls.constants import DATA_SPELLS_FILE_LOC, DATA_SYLLABLE_FILE_LOC
+from glassdolls._types import SyllableList
+from glassdolls.constants import DATA_SYLLABLE_FILE_LOC
 
-with (
-    open(DATA_SYLLABLE_FILE_LOC, "r", encoding="utf-8") as syllable_json,
-    open(DATA_SPELLS_FILE_LOC, "r", encoding="utf-8") as spell_json,
-):
+with (open(DATA_SYLLABLE_FILE_LOC, "r", encoding="utf-8") as syllable_json,):
     syllables = json.load(syllable_json)
     VOWELS = syllables["vowels"]
     NONVOWELS = syllables["nonvowels"]
-    SPELL_LIST: dict[str, list[str]] = json.load(spell_json)
 
 
 def generate_random_syllables(
@@ -67,34 +63,61 @@ def generate_random_syllables(
     return sorted(vn_list + nv_list + nvn_list + vnv_list)
 
 
-def generate_spells(
-    syllables_list: SyllableList,
-    spell_list: dict[str, list[str]],
+def generate_mantra(
+    syllables_list: SyllableList = generate_random_syllables(),
     min_words_per_spell: int = 2,
     max_words_per_spell: int = 3,
-) -> SpellChantList:
+) -> str:
 
-    SPELL_LEVEL = "0"
-    # Make a list of syllables to use from the
-    # "all syllables" list.
-    syllables_to_use = np.random.choice(
-        syllables_list,
-        size=(max_words_per_spell * len(spell_list[SPELL_LEVEL])),
-        replace=False,
-    ).tolist()
+    # Make a small list of syllables to use from the "all syllables" list.
+    syllables_to_use = np.random.choice(syllables_list, size=10).tolist()
 
     # Don't use a syllable more than once by popping.
-    return {
-        spell: " ".join(
-            [
-                syllables_to_use.pop()
-                for i in range(
-                    np.random.randint(min_words_per_spell, max_words_per_spell)
-                )
-            ]
-        )
-        for spell in spell_list[SPELL_LEVEL]
-    }
+    return " ".join(
+        [
+            syllables_to_use.pop()
+            for i in range(np.random.randint(min_words_per_spell, max_words_per_spell))
+        ]
+    )
+
+
+# syllables = generate_random_syllables()
+# print(
+#     generate_spells(
+#         syllables_list=syllables,
+#         spell_list=SPELL_LIST,
+#     )
+# )
+
+
+# def generate_spells(
+#     syllables_list: SyllableList,
+#     spell_list: dict[str, list[str]],
+#     min_words_per_spell: int = 2,
+#     max_words_per_spell: int = 3,
+# ) -> SpellChantList:
+
+#     SPELL_LEVEL = "0"
+#     # Make a list of syllables to use from the
+#     # "all syllables" list.
+#     syllables_to_use = np.random.choice(
+#         syllables_list,
+#         size=(max_words_per_spell * len(spell_list[SPELL_LEVEL])),
+#         replace=False,
+#     ).tolist()
+
+#     # Don't use a syllable more than once by popping.
+#     return {
+#         spell: " ".join(
+#             [
+#                 syllables_to_use.pop()
+#                 for i in range(
+#                     np.random.randint(min_words_per_spell, max_words_per_spell)
+#                 )
+#             ]
+#         )
+#         for spell in spell_list[SPELL_LEVEL]
+#     }
 
 
 # syllables = generate_random_syllables()
