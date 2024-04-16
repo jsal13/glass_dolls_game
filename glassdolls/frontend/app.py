@@ -1,4 +1,12 @@
+import os
+from typing import Any
 import streamlit as st
+import requests
+
+IN_DOCKER = bool(os.getenv("IN_DOCKER"))  # True if inside docker.
+
+API_HOST_NAME = "backend" if IN_DOCKER else "localhost"
+API_BASE = f"http://{API_HOST_NAME}:8001"
 
 
 st.title("Glass Dolls")
@@ -16,6 +24,13 @@ if "output_title" not in st.session_state:
     st.session_state["output_title"] = ""
 if "output_text" not in st.session_state:
     st.session_state["output_text"] = ""
+if "faction_data" not in st.session_state:
+    st.session_state["faction_data"] = {}
+
+
+def get_random_faction_data() -> dict[Any, Any]:
+    resp = requests.get(f"{API_BASE}/factions/random")
+    return resp.json()
 
 
 def code_to_output(code: str) -> None:
@@ -23,24 +38,18 @@ def code_to_output(code: str) -> None:
         txt = "Invalid or missing code."
         output_container.error(txt)
     else:
+        st.session_state["faction_data"] = get_random_faction_data()
+        print(st.session_state["faction_data"])
         display_problem(
-            title="",
-            problem="",
+            title=st.session_state["faction_data"]["name"],
+            problem=st.session_state["faction_data"]["sub_cipher_translated_phrases"][
+                0
+            ],
         )
 
 
 code = code_submit_container.text_input(label="Input Code Here", max_chars=128)
 submit = code_submit_container.button("Submit", on_click=code_to_output, args=(code,))
-
-
-def get_problem(code: str) -> tuple[str, str]:
-    # (title, problem)
-    return ("", "")
-
-
-def get_solution(code: str) -> str:
-    # (title, problem)
-    return "TEST"
 
 
 def display_problem(title: str, problem: str) -> None:
@@ -65,7 +74,7 @@ def display_input_solution() -> None:
 
 
 def check_solution(code: str, user_solution: str) -> None:
-    if get_solution(code) == user_solution:
+    if "TEST" == user_solution:
         solution_check_container.text("You did it!")
     else:
         solution_check_container.text("You did NOT do it!")
@@ -77,3 +86,6 @@ if st.session_state["output_title"]:
         title=st.session_state["output_title"], problem=st.session_state["output_text"]
     )
     display_input_solution()
+
+if st.session_state["faction_data"]:
+    st.markdown(st.session_state["faction_data"]["phrases"][0])

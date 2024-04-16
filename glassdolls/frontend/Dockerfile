@@ -2,6 +2,7 @@
 
 FROM python:3.12-slim-bookworm
 
+ENV IN_DOCKER 1
 ENV APP_HOME /app
 WORKDIR /app
 

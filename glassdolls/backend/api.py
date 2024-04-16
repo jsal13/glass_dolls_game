@@ -16,7 +16,7 @@ MONGO_CLIENT.connect()
 def get_faction_random() -> Any:
     MONGO_CLIENT.connect()
     cursor = MONGO_CLIENT.client["factions"].aggregate([{"$sample": {"size": 1}}])
-    return json.loads(dumps(cursor))
+    return json.loads(dumps(cursor))[0]
 
 
 @api.get("/factions/{faction_name}")
