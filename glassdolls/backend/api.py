@@ -20,8 +20,21 @@ def get_faction_random() -> Any:
 
 
 @api.get("/factions/{faction_name}")
-def get_faction(faction_name: str) -> dict[Any, Any]:
+def get_faction_phrases(faction_name: str) -> Any:
     MONGO_CLIENT.connect()
-    return list(
-        MONGO_CLIENT.query(collection="factions", query={"name": faction_name})
-    )[0]
+    return MONGO_CLIENT.query(collection="factions", query={"name": faction_name})
+
+
+@api.get("/code/{code}")
+def code(code: str) -> dict[Any, Any]:
+    MONGO_CLIENT.connect()
+    return MONGO_CLIENT.query(collection="factions", query={"phrases.code": code})[0]
+
+
+@api.get("/check/{code}/{solution}")
+def check_solution(code: str, solution: str) -> dict[str, bool]:
+    MONGO_CLIENT.connect()
+    true_solution = MONGO_CLIENT.query(
+        collection="factions", query={"phrases.code": code}
+    )[0]["phrases"]["solution"]
+    return {"data": true_solution == solution}

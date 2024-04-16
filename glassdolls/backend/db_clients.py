@@ -1,7 +1,9 @@
 import os
 from abc import ABC, abstractmethod
 from typing import Any, Sequence, TypeAlias
+import json
 
+from bson.json_util import dumps
 import psycopg
 from psycopg import sql
 from pymongo import MongoClient
@@ -61,7 +63,9 @@ class MongoDB(DBClient):
 
     def query(self, collection: str, query: dict[str, Any]) -> list[dict[str, Any]]:
         self._check_if_connected()
-        return list(self.client[collection].find(query))  # type: ignore
+        # TODO: What type?
+        cursor: Any = self.client[collection].find(query)
+        return json.loads(dumps(cursor))
 
 
 # class PostgresDB(DBClient):

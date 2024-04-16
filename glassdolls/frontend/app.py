@@ -28,9 +28,9 @@ if "faction_data" not in st.session_state:
     st.session_state["faction_data"] = {}
 
 
-def get_random_faction_data() -> dict[Any, Any]:
-    resp = requests.get(f"{API_BASE}/factions/random")
-    return resp.json()
+# def get_random_faction_data() -> dict[Any, Any]:
+#     resp = requests.get(f"{API_BASE}/factions/random")
+#     return resp.json()
 
 
 def code_to_output(code: str) -> None:
@@ -38,13 +38,11 @@ def code_to_output(code: str) -> None:
         txt = "Invalid or missing code."
         output_container.error(txt)
     else:
-        st.session_state["faction_data"] = get_random_faction_data()
-        print(st.session_state["faction_data"])
+        resp = requests.get(f"{API_BASE}/code/{code}")
+        st.session_state["faction_data"] = resp.json()
         display_problem(
             title=st.session_state["faction_data"]["name"],
-            problem=st.session_state["faction_data"]["sub_cipher_translated_phrases"][
-                0
-            ],
+            problem=st.session_state["faction_data"]["phrases"]["sub_cipher"],
         )
 
 
@@ -74,10 +72,11 @@ def display_input_solution() -> None:
 
 
 def check_solution(code: str, user_solution: str) -> None:
-    if "TEST" == user_solution:
+    resp = requests.get(f"{API_BASE}/check/{code}/{user_solution}").json()["data"]
+    if resp:
         solution_check_container.text("You did it!")
     else:
-        solution_check_container.text("You did NOT do it!")
+        solution_check_container.text("Oh no!")
 
 
 # Session State for Rerunning page.
@@ -86,6 +85,3 @@ if st.session_state["output_title"]:
         title=st.session_state["output_title"], problem=st.session_state["output_text"]
     )
     display_input_solution()
-
-if st.session_state["faction_data"]:
-    st.markdown(st.session_state["faction_data"]["phrases"][0])

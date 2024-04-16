@@ -22,7 +22,7 @@ class Initializer:
         """Populate Mongo ``faction`` collection."""
         for faction in self.factions:
             self.mongodb.insert_values(
-                collection="factions", values=[faction.to_dict()]
+                collection="factions", values=faction.to_mongo_format()
             )
 
     # def _create_puzzles(self) -> tuple[Any, Any, Any]:
@@ -103,6 +103,6 @@ class Initializer:
     #     self.populate_phrases_table(phrase_list=phrase_list)
 
 
-if __name__ == "__main__":
-    initializer = Initializer(mongodb=MongoDB())
-    initializer.initialize()
+# if __name__ == "__main__":
+#     initializer = Initializer(mongodb=MongoDB())
+#     initializer.initialize()

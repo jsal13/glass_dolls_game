@@ -10,6 +10,8 @@ from glassdolls.io.output import (
 )
 from glassdolls.io.game import Game
 
+from glassdolls.game_data.data_init import Initializer
+
 from glassdolls.state.player import PlayerState
 from glassdolls.state.game import GameState
 from glassdolls.state.maps import MapState
@@ -42,7 +44,11 @@ INPUT_BORDER_COLOR = "CYAN"
 if __name__ == "__main__":
 
     def run(term: "curses._CursesWindow") -> None:
-        import time
+        # Initialize Data.
+        # TODO: What if we don't care about this?  Can we turn it off?
+        initializer = Initializer()
+        initializer.initialize()
+        factions = initializer.factions
 
         color_map = get_color_map()
 
@@ -50,7 +56,9 @@ if __name__ == "__main__":
         game_text = GameText()
 
         # Events, Map, and Player States.
-        events = Events(data={Loc(5, 3): Event()})  # Initial events.
+        event_metadata = factions[0].phrases[0]
+        sample_event = Event(code=event_metadata["code"])
+        events = Events(data={Loc(5, 3): sample_event})  # Initial events.
         map_state = MapState(events=events, map_file=MAP_TOWN_TEST_FILE)
         player_state = PlayerState()
 

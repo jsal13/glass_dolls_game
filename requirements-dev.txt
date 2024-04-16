@@ -11,4 +11,4 @@ pytest-mock~=3.14
 pytest~=8.1
 ruff~=0.3
 types-beautifulsoup4~=4.12
-types-requests~==2.31
+types-requests~=2.31

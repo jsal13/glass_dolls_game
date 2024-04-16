@@ -16,12 +16,18 @@ class Event:
     etype: EventType = field(default=EventType.puzzle)
     symbol: str = field(default="∮")
     uri: str = field(default=FE_URI)
+    code: str = field(default="")
     color: str = field(default="RED")
     active: bool = field(default=True)
-    text: str = field(default=f"This is a test Event.")
 
     def __attrs_post_init__(self) -> None:
         pass
+
+    def make_title(self) -> str:
+        return str(self.etype)
+
+    def make_body(self) -> str:
+        return f"Investigate {self.uri} with code: {self.code}"
 
 
 @define
