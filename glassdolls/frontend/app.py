@@ -1,12 +1,5 @@
 import streamlit as st
 
-from glassdolls.data_init import Initializer
-from glassdolls.db_clients import MongoDB
-
-# TODO: We don't want to use the Initializer here, we should have a dedicated API for queries.
-init = Initializer(
-    mongodb=MongoDB(connection_string="mongodb://admin:example@db-mongo:27017")
-)
 
 st.title("Glass Dolls")
 
@@ -26,14 +19,13 @@ if "output_text" not in st.session_state:
 
 
 def code_to_output(code: str) -> None:
-    name, puzzle, _ = init._create_puzzles()
     if code is None or not code:
         txt = "Invalid or missing code."
         output_container.error(txt)
     else:
         display_problem(
-            title=name,
-            problem=puzzle,
+            title="",
+            problem="",
         )
 
 
@@ -43,13 +35,11 @@ submit = code_submit_container.button("Submit", on_click=code_to_output, args=(c
 
 def get_problem(code: str) -> tuple[str, str]:
     # (title, problem)
-    name, puzzle, _ = init._create_puzzles()
-    return (name, puzzle)
+    return ("", "")
 
 
 def get_solution(code: str) -> str:
     # (title, problem)
-    name, _, solution = init._create_puzzles()
     return "TEST"
 
 

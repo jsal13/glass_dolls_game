@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from pytest_mock import MockerFixture, MockType
 
-from glassdolls.db_clients import MongoDB, PostgresDB
+from glassdolls.backend.db_clients import MongoDB, PostgresDB
 
 ## POSTGRES
 

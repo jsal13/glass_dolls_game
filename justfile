@@ -9,6 +9,9 @@ up:
 down:
   docker compose down --remove-orphans --volumes
 
+build:
+  docker compose build
+
 docs-serve:
   mkdocs serve
 

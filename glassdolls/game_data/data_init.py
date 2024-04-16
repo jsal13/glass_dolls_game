@@ -1,7 +1,7 @@
 import random
 from typing import Any
 
-from glassdolls.db_clients import MongoDB
+from glassdolls.backend.db_clients import MongoDB
 from glassdolls.game_data.factions import Faction
 
 
@@ -25,22 +25,16 @@ class Initializer:
                 collection="factions", values=[faction.to_dict()]
             )
 
-    def _get_random_faction_data_from_mongo(self) -> dict[Any, Any]:
-        self.mongodb.connect()
-        return list(
-            self.mongodb.client["factions"].aggregate([{"$sample": {"size": 1}}])
-        )[0]
+    # def _create_puzzles(self) -> tuple[Any, Any, Any]:
+    #     # TODO: Make this nicer.
+    #     faction_data = self._get_random_faction_data_from_mongo()
+    #     import random
 
-    def _create_puzzles(self) -> tuple[Any, Any, Any]:
-        # TODO: Make this nicer.
-        faction_data = self._get_random_faction_data_from_mongo()
-        import random
-
-        return (
-            faction_data["name"],
-            faction_data["sub_cipher_translated_phrases"][random.randint(0, 4)],
-            faction_data["phrases"][random.randint(0, 4)],
-        )
+    #     return (
+    #         faction_data["name"],
+    #         faction_data["sub_cipher_translated_phrases"][random.randint(0, 4)],
+    #         faction_data["phrases"][random.randint(0, 4)],
+    #     )
 
     def initialize(self) -> None:
         """Main run command."""

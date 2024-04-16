@@ -1,3 +1,4 @@
+import os
 from abc import ABC, abstractmethod
 from typing import Any, Sequence, TypeAlias
 
@@ -6,10 +7,10 @@ from psycopg import sql
 from pymongo import MongoClient
 from pymongo.cursor import Cursor
 
-from glassdolls.constants import MONGO_CONNECTION_STRING  # , PG_CONNECTION_STRING
+IN_DOCKER = bool(os.getenv("IN_DOCKER"))  # True if inside docker.
 
-# TODO: localhost for outside of docker, db-mongo for inside.
-
+MONGO_HOST_NAME = "db-mongo" if IN_DOCKER else "localhost"
+MONGO_CONNECTION_STRING = f"mongodb://admin:example@{MONGO_HOST_NAME}:27017"
 
 _DB_Client: TypeAlias = (
     MongoClient[dict[str, Any]] | psycopg.Connection[tuple[Any, ...]]
