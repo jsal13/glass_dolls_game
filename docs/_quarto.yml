@@ -1,0 +1,42 @@
+project:
+  type: website
+
+website:
+  title: "Glass Dolls Game"
+  navbar:
+    search: true
+    
+  sidebar:
+    style: "docked"
+    search: true
+    contents:
+      - section: "Tutorials"
+        contents:
+
+      - section: "How-To"
+        contents:
+
+      - section: "Fundamentals"
+        contents:
+
+      - section: "Reference"
+        contents:
+          # - ./reference/definitions.qmd
+          # - ./reference/cart_data.qmd
+          # - ./reference/utilities_and_resources.qmd
+
+format:
+  html:
+    theme: flatly
+    mainfont: "Segoe UI Emoji"
+    fontsize: 12pt
+    css: styles.css
+    toc: true
+    code-fold: true  # This doesn't seem to work... :'[ 
+    code-summary: "Show Code"
+    code-block-border-left: "#18bc9c"
+    highlight-style: kate
+    code-line-numbers: true
+
+
+    

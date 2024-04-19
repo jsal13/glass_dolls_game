@@ -1,0 +1,4 @@
+/.quarto/
+
+# For now, ignore the build.
+/_site/ 

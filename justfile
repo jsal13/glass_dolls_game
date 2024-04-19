@@ -12,11 +12,8 @@ down:
 build:
   docker compose build
 
-docs-serve:
-  mkdocs serve
-
-docs-build:
-  mkdocs build
+docs:
+  quarto render docs
 
 venv: 
   python -m venv .venv

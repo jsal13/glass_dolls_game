@@ -6,55 +6,15 @@ from pytest_mock import MockerFixture, MockType
 
 from glassdolls.backend.db_clients import MongoDB
 
-# ## POSTGRES
 
-
-# @patch("glassdolls.utils.db_clients.psycopg.connect")
-# def test_PostgresDB_connect_runs(mock_pg: MagicMock) -> None:
-#     pg = PostgresDB()
-#     pg.connect()
-#     assert pg.client is not None
-
-
-# @patch("glassdolls.utils.db_clients.psycopg.connect")
-# def test_PostgresDB_insert_values_runs(mock_pg: MagicMock) -> None:
-#     pg = PostgresDB()
-#     pg.connect()
-#     pg.insert_values(table="test", cols=["test1", "test2"], values=[1, 2])
-
-
-# @patch("glassdolls.utils.db_clients.psycopg.connect")
-# def test_PostgresDB_insert_values_errors_if_not_connected(mock_pg: MagicMock) -> None:
-#     pg = PostgresDB()
-#     with pytest.raises(ConnectionError):
-#         pg.insert_values(table="test", cols=["test1", "test2"], values=[1, 2])
-
-
-# @patch("glassdolls.utils.db_clients.psycopg.connect")
-# def test_PostgresDB_query_runs(mock_pg: MagicMock) -> None:
-#     pg = PostgresDB()
-#     pg.connect()
-#     pg.query(query="SELECT * FROM test;")
-
-
-# @patch("glassdolls.utils.db_clients.psycopg.connect")
-# def test_PostgresDB_query_errors_if_not_connected(mock_pg: MagicMock) -> None:
-#     pg = PostgresDB()
-#     with pytest.raises(ConnectionError):
-#         pg.query(query="SELECT * FROM test;")
-
-
-## MONGO
-
-
-@patch("glassdolls.utils.db_clients.MongoClient")
+@patch("glassdolls.backend.db_clients.MongoClient")
 def test_MongoDB_connect_runs(mock_mongo: MagicMock) -> None:
     mongodb = MongoDB()
     mongodb.connect()
     assert mongodb.client is not None
 
 
-@patch("glassdolls.utils.db_clients.MongoClient")
+@patch("glassdolls.backend.db_clients.MongoClient")
 def test_MongoDB_insert_values_runs(mock_mongo: MagicMock) -> None:
     mongodb = MongoDB()
     mongodb.connect()
@@ -63,7 +23,7 @@ def test_MongoDB_insert_values_runs(mock_mongo: MagicMock) -> None:
     )
 
 
-@patch("glassdolls.utils.db_clients.MongoClient")
+@patch("glassdolls.backend.db_clients.MongoClient")
 def test_MongoDB_insert_values_errors_if_not_connected(mock_mongo: MagicMock) -> None:
     mongodb = MongoDB()
     with pytest.raises(ConnectionError):
@@ -72,14 +32,14 @@ def test_MongoDB_insert_values_errors_if_not_connected(mock_mongo: MagicMock) ->
         )
 
 
-@patch("glassdolls.utils.db_clients.MongoClient")
+@patch("glassdolls.backend.db_clients.MongoClient")
 def test_MongoDB_query_runs(mock_mongo: MagicMock) -> None:
     mongodb = MongoDB()
     mongodb.connect()
     mongodb.query(collection="test", query={"test": "thing"})
 
 
-@patch("glassdolls.utils.db_clients.MongoClient")
+@patch("glassdolls.backend.db_clients.MongoClient")
 def test_MongoDB_query_errors_if_not_connected(mock_mongo: MagicMock) -> None:
     mongodb = MongoDB()
     with pytest.raises(ConnectionError):
