@@ -38,11 +38,12 @@ class Initializer:
 
     def initialize(self) -> None:
         """Main run command."""
+        # TODO: We need to make this idempotent.
         self.mongodb.connect()
         self.factions = self._create_factions()
         self._populate_faction_collection()
 
-    # def populate_spell_table(self, spell_mapping: SpellChantList) -> None:
+    # def populate_spell_table(self, spell_mapping: MantraChantList) -> None:
     #     for spell, syllables in spell_mapping.items():
     #         self.pg.insert_values(
     #             table="spells", cols=("spell", "syllables"), values=(spell, syllables)
@@ -92,7 +93,7 @@ class Initializer:
     # def initialize_all(self) -> None:
     #     """Initialize all dbs."""
     #     # Spells
-    #     spell_mapping: SpellChantList = spells.generate_spells(
+    #     spell_mapping: MantraChantList = spells.generate_spells(
     #         syllables_list=spells.generate_random_syllables(),
     #         spell_list=spells.SPELL_LIST,
     #     )

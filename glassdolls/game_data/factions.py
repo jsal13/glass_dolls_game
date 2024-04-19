@@ -30,8 +30,8 @@ class Faction:
 
             # Creates solution, adds it to the phrase.
             solution = mantras.generate_mantra()
-            solution_sent = f"\nTHE CODE IS {solution}"
-            phrase = _phrase + solution_sent
+            solution_sentence = f"\nTHE CODE IS {solution}."
+            phrase = _phrase + solution_sentence
 
             self.phrases.append(
                 {

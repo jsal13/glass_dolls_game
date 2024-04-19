@@ -9,4 +9,4 @@ TranslationTableStrKey: TypeAlias = dict[str, str]
 
 # Spells
 SyllableList: TypeAlias = list[str]
-SpellChantList: TypeAlias = dict[str, str]
+MantraChantList: TypeAlias = dict[str, str]

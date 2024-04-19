@@ -1,9 +1,11 @@
 import numpy as np
 import pytest
 
-from glassdolls.puzzles.mantras import (SpellChantList,
-                                        generate_random_syllables,
-                                        generate_spells)
+from glassdolls.puzzles.mantras import (
+    MantraChantList,
+    generate_random_syllables,
+    generate_spells,
+)
 
 
 @pytest.fixture()
@@ -43,7 +45,7 @@ def spell_list() -> dict[str, list[str]]:
 
 
 @pytest.fixture()
-def spell_chant_list() -> SpellChantList:
+def spell_chant_list() -> MantraChantList:
     return {
         "Fire": "RQ KJ",
         "Ice": "UV ML",
@@ -56,7 +58,7 @@ def spell_chant_list() -> SpellChantList:
 def test_generate_spells_outputs_correctly(
     syllable_list: list[str],
     spell_list: dict[str, list[str]],
-    spell_chant_list: SpellChantList,
+    spell_chant_list: MantraChantList,
 ) -> None:
     spells = generate_spells(
         syllables_list=syllable_list,

@@ -18,7 +18,7 @@ def generate_random_syllables(
     vowel_nonvowel_vowel_num: int = 10,
 ) -> SyllableList:
     """
-    Generate Random Syllables for use in Spells.
+    Generate Random Syllables for use in mantras.
 
     Args:
         vowel_first_num (int, optional): Number of vowel-first syllables. Defaults to 25.
@@ -65,8 +65,8 @@ def generate_random_syllables(
 
 def generate_mantra(
     syllables_list: SyllableList = generate_random_syllables(),
-    min_words_per_spell: int = 2,
-    max_words_per_spell: int = 3,
+    min_words_per_mantra: int = 2,
+    max_words_per_mantra: int = 3,
 ) -> str:
 
     # Make a small list of syllables to use from the "all syllables" list.
@@ -76,54 +76,56 @@ def generate_mantra(
     return " ".join(
         [
             syllables_to_use.pop()
-            for i in range(np.random.randint(min_words_per_spell, max_words_per_spell))
+            for i in range(
+                np.random.randint(min_words_per_mantra, max_words_per_mantra)
+            )
         ]
     )
 
 
 # syllables = generate_random_syllables()
 # print(
-#     generate_spells(
+#     generate_mantras(
 #         syllables_list=syllables,
-#         spell_list=SPELL_LIST,
+#         mantra_list=mantra_LIST,
 #     )
 # )
 
 
-# def generate_spells(
+# def generate_mantras(
 #     syllables_list: SyllableList,
-#     spell_list: dict[str, list[str]],
-#     min_words_per_spell: int = 2,
-#     max_words_per_spell: int = 3,
-# ) -> SpellChantList:
+#     mantra_list: dict[str, list[str]],
+#     min_words_per_mantra: int = 2,
+#     max_words_per_mantra: int = 3,
+# ) -> mantraChantList:
 
-#     SPELL_LEVEL = "0"
+#     mantra_LEVEL = "0"
 #     # Make a list of syllables to use from the
 #     # "all syllables" list.
 #     syllables_to_use = np.random.choice(
 #         syllables_list,
-#         size=(max_words_per_spell * len(spell_list[SPELL_LEVEL])),
+#         size=(max_words_per_mantra * len(mantra_list[mantra_LEVEL])),
 #         replace=False,
 #     ).tolist()
 
 #     # Don't use a syllable more than once by popping.
 #     return {
-#         spell: " ".join(
+#         mantra: " ".join(
 #             [
 #                 syllables_to_use.pop()
 #                 for i in range(
-#                     np.random.randint(min_words_per_spell, max_words_per_spell)
+#                     np.random.randint(min_words_per_mantra, max_words_per_mantra)
 #                 )
 #             ]
 #         )
-#         for spell in spell_list[SPELL_LEVEL]
+#         for mantra in mantra_list[mantra_LEVEL]
 #     }
 
 
 # syllables = generate_random_syllables()
 # print(
-#     generate_spells(
+#     generate_mantras(
 #         syllables_list=syllables,
-#         spell_list=SPELL_LIST,
+#         mantra_list=mantra_LIST,
 #     )
 # )
