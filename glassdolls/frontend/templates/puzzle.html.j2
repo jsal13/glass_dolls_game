@@ -1,0 +1,24 @@
+{% extends "base.html.j2" %}
+{% block content %}
+
+<div class="container mt-5">
+    <div class="row"><h1>{{ faction }}</h1></div>
+    <div class="row"><p class="puzzle-text">{{ phrase }}</p></div>
+</div>
+
+<br/>
+<hr/>
+<br/>
+
+<div class="container">
+    <form class="row g-3">
+        <div class="col-auto">
+            <input type="text" class="form-control" id="input_solution" placeholder="Solution">
+        </div>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-primary mb-3">Submit</button>
+        </div>
+    </form>
+</div>
+
+{% endblock %}

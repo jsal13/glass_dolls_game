@@ -27,7 +27,7 @@ class Event:
         return str(self.etype)
 
     def make_body(self) -> str:
-        return f"Investigate {self.uri} with code: {self.code}"
+        return f"{self.uri}/puzzle?code={self.code}"
 
 
 @define

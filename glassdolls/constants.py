@@ -85,4 +85,4 @@ USER_INPUT_OPTIONS = "(←↑→↓) Move\n(L)ook\n(U)se\n(I)nventory"
 
 
 # FRONTEND
-FE_URI = "http://localhost:8501"
+FE_URI = "http://localhost:5000"

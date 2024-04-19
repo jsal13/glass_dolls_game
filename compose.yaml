@@ -43,7 +43,7 @@ services:
       context: ./glassdolls/frontend/
     restart: always
     ports:
-      - 8501:8501
+      - 5000:5000
     develop:
       watch:
         - action: sync
