@@ -1,7 +1,9 @@
 import os
 from typing import Any
+
 import requests
 from flask import Flask, render_template, request
+from flask_caching import Cache
 
 IN_DOCKER = bool(os.getenv("IN_DOCKER"))  # True if inside docker.
 

@@ -3,13 +3,12 @@ from typing import Any
 
 from attrs import define, field
 
+from glassdolls import logger
 from glassdolls.io.input import UserInput
 from glassdolls.io.output import GameScreen
-from glassdolls.state.signals import SignalSender
-from glassdolls.state.game import GameState
 from glassdolls.state.events import Event
-
-from glassdolls import logger
+from glassdolls.state.game import GameState
+from glassdolls.state.signals import SignalSender
 
 
 @define

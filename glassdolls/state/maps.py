@@ -1,14 +1,14 @@
 from typing import Any
-from attrs import define, field
 
+from attrs import define, field
 from blinker import NamedSignal, signal
 
-from glassdolls.constants import MAP_LEGEND_JSON, MAP_TOWN_TEST_FILE
-from glassdolls.utils import Loc
 from glassdolls import logger
 from glassdolls._types import MapTiles
+from glassdolls.constants import MAP_LEGEND_JSON, MAP_TOWN_TEST_FILE
 from glassdolls.state.events import Events
 from glassdolls.state.signals import SignalSender
+from glassdolls.utils import Loc
 
 
 @define

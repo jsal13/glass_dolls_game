@@ -3,8 +3,8 @@ from typing import Generator
 import pytest
 from pytest_mock import MockerFixture, MockType
 
-from glassdolls.game_data.data_init import Initializer
 from glassdolls.backend.db_clients import MongoDB, PostgresDB
+from glassdolls.game_data.data_init import Initializer
 
 
 @pytest.fixture()

@@ -1,8 +1,10 @@
-from typing import Any
 import hashlib
+from typing import Any
+
 from attrs import define, field
+
+from glassdolls._types import TranslationTable, TranslationTableStrKey
 from glassdolls.puzzles import basic_math, ciphers, mantras, phrases
-from glassdolls._types import TranslationTableStrKey, TranslationTable
 
 NUM_PHRASES_PER_FACTION = 5
 

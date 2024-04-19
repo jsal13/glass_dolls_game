@@ -1,26 +1,18 @@
-import textwrap
-import json
 import curses
+import json
+import textwrap
 from copy import deepcopy
 
 from attrs import define, field
 
-from glassdolls.utils import Loc
-from glassdolls.state.signals import SignalSender
+from glassdolls.constants import (ASCII_CODES, DATA_GAME_DIALOGUE,
+                                  DESCRIPTION_HEIGHT, HORIZ_PADDING,
+                                  MAP_HEIGHT, MAP_WIDTH, MAX_SCREEN_WIDTH,
+                                  TERMINAL_XY_INIT_MAP, USER_INPUT_OPTIONS,
+                                  VERT_PADDING)
 from glassdolls.state.maps import MapState
-
-from glassdolls.constants import (
-    HORIZ_PADDING,
-    MAP_HEIGHT,
-    MAP_WIDTH,
-    MAX_SCREEN_WIDTH,
-    TERMINAL_XY_INIT_MAP,
-    VERT_PADDING,
-    ASCII_CODES,
-    DATA_GAME_DIALOGUE,
-    DESCRIPTION_HEIGHT,
-    USER_INPUT_OPTIONS,
-)
+from glassdolls.state.signals import SignalSender
+from glassdolls.utils import Loc
 
 PLAYER_COLOR = "CYAN"
 DESC_TITLE_COLOR = "CYAN"

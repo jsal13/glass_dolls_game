@@ -1,14 +1,9 @@
-import pytest
 from unittest.mock import MagicMock, patch
 
-from glassdolls.io.output import (
-    MapDisplay,
-    LineDisplay,
-    OptionsDisplay,
-    DescriptionDisplay,
-    GameScreen,
-    TerminalPrinter,
-)
+import pytest
+
+from glassdolls.io.output import (DescriptionDisplay, GameScreen, LineDisplay,
+                                  MapDisplay, OptionsDisplay, TerminalPrinter)
 from glassdolls.io.utils import Loc
 
 

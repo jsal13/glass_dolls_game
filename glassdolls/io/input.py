@@ -1,8 +1,8 @@
-import sys
 import curses
-from attrs import define, field
+import sys
 
-from blinker import signal, NamedSignal
+from attrs import define, field
+from blinker import NamedSignal, signal
 
 from glassdolls import logger
 from glassdolls.constants import USER_MOVEMENT

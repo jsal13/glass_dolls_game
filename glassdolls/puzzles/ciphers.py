@@ -1,6 +1,7 @@
 import string
 
 import numpy as np
+
 from glassdolls._types import TranslationTable, TranslationTableStrKey
 
 

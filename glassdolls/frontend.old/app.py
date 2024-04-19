@@ -1,7 +1,8 @@
 import os
 from typing import Any
-import streamlit as st
+
 import requests
+import streamlit as st
 
 IN_DOCKER = bool(os.getenv("IN_DOCKER"))  # True if inside docker.
 

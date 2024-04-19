@@ -2,11 +2,10 @@ from typing import Any
 
 from attrs import define, field
 
+from glassdolls import logger
+from glassdolls.state.maps import MapState
 from glassdolls.state.player import PlayerState
 from glassdolls.state.signals import SignalSender
-from glassdolls.state.maps import MapState
-
-from glassdolls import logger
 
 
 @define

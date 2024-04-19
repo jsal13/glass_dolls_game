@@ -1,5 +1,6 @@
-import pytest
 from unittest.mock import MagicMock, patch
+
+import pytest
 from blessed.keyboard import Keystroke
 
 from glassdolls.io.input import UserInput

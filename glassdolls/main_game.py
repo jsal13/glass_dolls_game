@@ -1,36 +1,21 @@
 import curses
 
-from glassdolls.io.input import UserInput
-from glassdolls.io.output import (
-    GameScreen,
-    GameText,
-    MapDisplay,
-    DescriptionDisplay,
-    InputWindow,
-)
-from glassdolls.io.game import Game
-
+from glassdolls import logger
+from glassdolls.constants import (DESCRIPTION_HEIGHT, HORIZ_PADDING,
+                                  MAP_HEIGHT, MAP_TOWN_TEST_FILE, MAP_WIDTH,
+                                  MAX_SCREEN_WIDTH, TERMINAL_XY_INIT_MAP,
+                                  USER_INPUT_OPTIONS, VERT_PADDING)
 from glassdolls.game_data.data_init import Initializer
-
-from glassdolls.state.player import PlayerState
+from glassdolls.io.game import Game
+from glassdolls.io.input import UserInput
+from glassdolls.io.output import (DescriptionDisplay, GameScreen, GameText,
+                                  InputWindow, MapDisplay)
+from glassdolls.io.utils import get_color_map
+from glassdolls.state.events import Event, Events
 from glassdolls.state.game import GameState
 from glassdolls.state.maps import MapState
-from glassdolls.state.events import Events, Event
+from glassdolls.state.player import PlayerState
 from glassdolls.utils import Loc
-
-from glassdolls import logger
-from glassdolls.io.utils import get_color_map
-from glassdolls.constants import (
-    TERMINAL_XY_INIT_MAP,
-    MAP_HEIGHT,
-    MAP_WIDTH,
-    MAP_TOWN_TEST_FILE,
-    HORIZ_PADDING,
-    VERT_PADDING,
-    DESCRIPTION_HEIGHT,
-    MAX_SCREEN_WIDTH,
-    USER_INPUT_OPTIONS,
-)
 
 PLAYER_COLOR = "CYAN"
 DESC_TITLE_COLOR = "CYAN"

@@ -1,9 +1,10 @@
 from enum import Enum, auto
+
 from attrs import define, field
 
-from glassdolls.utils import Loc
 from glassdolls import logger
 from glassdolls.constants import FE_URI
+from glassdolls.utils import Loc
 
 
 class EventType(Enum):

@@ -1,11 +1,10 @@
-import os
 import json
+import os
 from typing import Any
-from fastapi import FastAPI
+
 from bson.json_util import dumps
-
 from db_clients import MongoDB  # type: ignore
-
+from fastapi import FastAPI
 
 api = FastAPI()
 MONGO_CLIENT = MongoDB()
