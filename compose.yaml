@@ -17,6 +17,15 @@ services:
   #   ports:
   #     - 8080:8080
 
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    restart: always
+    ports:
+      - 5672:5672
+      - 15672:15672
+    volumes:
+     - ./rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
+
   db-mongo:
     image: mongo:7.0.7-jammy
     restart: always

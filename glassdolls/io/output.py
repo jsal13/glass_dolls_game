@@ -4,15 +4,25 @@ import textwrap
 from copy import deepcopy
 
 from attrs import define, field
+import pika
 
-from glassdolls.constants import (ASCII_CODES, DATA_GAME_DIALOGUE,
-                                  DESCRIPTION_HEIGHT, HORIZ_PADDING,
-                                  MAP_HEIGHT, MAP_WIDTH, MAX_SCREEN_WIDTH,
-                                  TERMINAL_XY_INIT_MAP, USER_INPUT_OPTIONS,
-                                  VERT_PADDING)
+from glassdolls.constants import (
+    ASCII_CODES,
+    DATA_GAME_DIALOGUE,
+    DESCRIPTION_HEIGHT,
+    HORIZ_PADDING,
+    MAP_HEIGHT,
+    MAP_WIDTH,
+    MAX_SCREEN_WIDTH,
+    TERMINAL_XY_INIT_MAP,
+    USER_INPUT_OPTIONS,
+    VERT_PADDING,
+)
 from glassdolls.state.maps import MapState
 from glassdolls.state.signals import SignalSender
+from glassdolls.pubsub.client import RabbitMQClient
 from glassdolls.utils import Loc
+from glassdolls import logger
 
 PLAYER_COLOR = "CYAN"
 DESC_TITLE_COLOR = "CYAN"
@@ -33,7 +43,7 @@ class Window:
     border_color: int = field(default=0)
     subwindow: "curses._CursesWindow" = field(init=False, repr=False)
 
-    def __attrs_post_init__(self) -> None:
+    def init_window(self) -> None:
         self.subwindow = curses.newwin(
             self.height + (2 * self.border),
             self.width + (2 * self.border),
@@ -82,7 +92,7 @@ class InputWindow(Window):
     cursor: str | None = field(default=">")
 
     def __attrs_post_init__(self) -> None:
-        Window.__attrs_post_init__(self)
+        self.init_window()
         self.clear_window()
 
     def clear_window(self) -> None:
@@ -114,15 +124,20 @@ class InputWindow(Window):
 
 
 @define
-class MapDisplay(Window, SignalSender):
+class MapDisplay(Window, SignalSender, RabbitMQClient):
     _map_state: MapState = field(repr=False, default=MapState())
     player_loc: Loc = field(default=Loc(0, 0))
     map_color: int = field(default=0)
     player_color: int = field(default=512)
 
     def __attrs_post_init__(self) -> None:
-        Window.__attrs_post_init__(self)
+        self.init_window()
         curses.curs_set(0)
+
+        self.init_rabbitmqclient()
+        self.bind_queue(queue="player", routing_key="input")
+        self.consume_from_queue(queue="player", callback=self.handle_player_loc_changed)
+        logger.debug("I GOT HERE.")
 
     @property
     def map_state(self) -> MapState:
@@ -164,20 +179,45 @@ class MapDisplay(Window, SignalSender):
         self.refresh()
 
     def handle_player_loc_changed(
-        self, signal: str | None = None, data: dict[str, Loc] | None = None
+        self,
+        ch: "pika.adapters.blocking_connection.BlockingChannel",
+        method: "pika.spec.Basic.Deliver",
+        properties: "pika.BasicProperties",
+        body: bytes,
     ) -> None:
-        self._log_handle_signal(signal=signal, data=data)
-        if data is not None:
-            if data.get("location") is not None:
+        logger.debug(
+            f" [x] Received [r_key: {method.routing_key}] {json.loads(body.decode('utf-8'))}"
+        )
+        data = json.loads(body.decode("utf-8"))
+
+        if data.get("data") is not None:
+            if data["data"].get("location") is not None:
                 previous_loc = deepcopy(self.player_loc)
                 self.player_loc = data["location"]
                 self.map_state.update_visible(self.player_loc)
-                # self.update_player_loc(previous_loc=previous_loc)
                 self.display()
             else:
-                raise ValueError(f"Got {data}, not a dict with key 'location'.")
+                raise ValueError(
+                    f"Got {body.decode('utf-8')}, not a dict with key 'location'."
+                )
         else:
-            raise ValueError("Got empty data package.")
+            raise ValueError("No data associated with this payload.")
+
+    # def handle_player_loc_changed(
+    #     self, signal: str | None = None, data: dict[str, Loc] | None = None
+    # ) -> None:
+    #     self._log_handle_signal(signal=signal, data=data)
+    #     if data is not None:
+    #         if data.get("location") is not None:
+    #             previous_loc = deepcopy(self.player_loc)
+    #             self.player_loc = data["location"]
+    #             self.map_state.update_visible(self.player_loc)
+    #             # self.update_player_loc(previous_loc=previous_loc)
+    #             self.display()
+    #         else:
+    #             raise ValueError(f"Got {data}, not a dict with key 'location'.")
+    #     else:
+    #         raise ValueError("Got empty data package.")
 
 
 @define
@@ -199,6 +239,9 @@ class DescriptionDisplay(Window, SignalSender):
     _text: str = field(default="")
     title_color: int = field(default=256)
     text_color: int = field(default=0)
+
+    def __attrs_post_init_(self) -> None:
+        self.init_window()
 
     @property
     def title(self) -> str:

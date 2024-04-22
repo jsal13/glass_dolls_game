@@ -1,14 +1,21 @@
 import random
 from typing import Any
 
+from attrs import define, field
+
 from glassdolls.backend.db_clients import MongoDB
 from glassdolls.game_data.factions import Faction
+from glassdolls.pubsub.client import RabbitMQClient
 
 
+@define
 class Initializer:
 
-    def __init__(self, mongodb: MongoDB = MongoDB()) -> None:
-        self.mongodb = mongodb
+    mongodb: MongoDB = field(default=MongoDB(), repr=False)
+    rabbitmq_client: RabbitMQClient = field(
+        default=RabbitMQClient(exchange="game"), repr=False
+    )
+    factions: list[Faction] = field(init=False)
 
     def _create_factions(self) -> list[Faction]:
         return [
@@ -24,6 +31,9 @@ class Initializer:
             self.mongodb.insert_values(
                 collection="factions", values=faction.to_mongo_format()
             )
+
+    def _create_queues_for_pubsub(self) -> None:
+        self.rabbitmq_client.bind_queue(queue="player", routing_key="input")
 
     # def _create_puzzles(self) -> tuple[Any, Any, Any]:
     #     # TODO: Make this nicer.
@@ -42,6 +52,7 @@ class Initializer:
         self.mongodb.connect()
         self.factions = self._create_factions()
         self._populate_faction_collection()
+        self._create_queues_for_pubsub()
 
     # def populate_spell_table(self, spell_mapping: MantraChantList) -> None:
     #     for spell, syllables in spell_mapping.items():

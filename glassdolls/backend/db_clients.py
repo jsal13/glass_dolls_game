@@ -3,9 +3,10 @@ import os
 from abc import ABC, abstractmethod
 from typing import Any, Sequence, TypeAlias
 
-import psycopg
+# import psycopg
 from bson.json_util import dumps
-from psycopg import sql
+
+# from psycopg import sql
 from pymongo import MongoClient
 from pymongo.cursor import Cursor
 
@@ -14,9 +15,9 @@ IN_DOCKER = bool(os.getenv("IN_DOCKER"))  # True if inside docker.
 MONGO_HOST_NAME = "db-mongo" if IN_DOCKER else "localhost"
 MONGO_CONNECTION_STRING = f"mongodb://admin:example@{MONGO_HOST_NAME}:27017"
 
-_DB_Client: TypeAlias = (
-    MongoClient[dict[str, Any]] | psycopg.Connection[tuple[Any, ...]]
-)
+_DB_Client: TypeAlias = MongoClient[
+    dict[str, Any]
+]  # | psycopg.Connection[tuple[Any, ...]]
 
 
 class DBClient(ABC):

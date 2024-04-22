@@ -11,3 +11,4 @@ blinker~=1.7
 streamlit~=1.33
 fastapi~=0.110
 uvicorn[standard]
+pika~=1.3

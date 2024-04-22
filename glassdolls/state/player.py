@@ -4,11 +4,12 @@ from attrs import define, field
 from blinker import NamedSignal, signal
 
 from glassdolls.state.signals import SignalSender
+from glassdolls.pubsub.client import RabbitMQClient
 from glassdolls.utils import Loc
 
 
 @define
-class PlayerState(SignalSender):
+class PlayerState(SignalSender, RabbitMQClient):
     _loc: Loc = field(init=False)
 
     health: int = field(default=10)
@@ -16,13 +17,13 @@ class PlayerState(SignalSender):
     strength: int = field(default=1)
     intelligence: int = field(default=1)
 
-    signal_player_loc_changed: NamedSignal = field(init=False, repr=False)
+    # signal_player_loc_changed: NamedSignal = field(init=False, repr=False)
     signal_player_look: NamedSignal = field(init=False, repr=False)
 
     def __attrs_post_init__(self) -> None:
-        self.signal_player_loc_changed = signal(
-            f"{self.__class__.__name__}_player_loc_changed"
-        )
+        # self.signal_player_loc_changed = signal(
+        #     f"{self.__class__.__name__}_player_loc_changed"
+        # )
         self.signal_player_look = signal(
             f"{self.__class__.__name__}_signal_player_look"
         )
@@ -36,7 +37,11 @@ class PlayerState(SignalSender):
     @loc.setter
     def loc(self, value: Loc) -> None:
         self._loc = value
-        self.send_signal(self.signal_player_loc_changed, data={"location": self.loc})
+        self.send(
+            routing_key="player",
+            body={"event": "player_loc_changed", "data": {"location": self.loc}},
+        )
+        # self.send_signal(self.signal_player_loc_changed, data={"location": self.loc})
 
     def handle_signal_player_input_attempt_movement(
         self, signal: str | None = None, data: dict[str, Any] | None = None

@@ -3,6 +3,10 @@ set shell := ["zsh", "-cu"]
 default:
   just --list
 
+# Requires docker to be set up.
+run:
+  python ./glassdolls/main_game.py
+
 up:
   docker compose up --remove-orphans -w
 

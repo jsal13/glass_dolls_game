@@ -6,7 +6,7 @@ from blinker import NamedSignal
 from glassdolls import logger
 
 
-@define
+@define(slots=False)
 class SignalSender:
     """Represents objects which can send or handle signals."""
 

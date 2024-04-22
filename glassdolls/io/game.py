@@ -23,9 +23,9 @@ class Game(SignalSender):
         self.game_screen.term.refresh()
 
         # Updates map if player loc has changed.
-        self.game_state.player_state.signal_player_loc_changed.connect(
-            self.game_screen.map_display.handle_player_loc_changed
-        )
+        # self.game_state.player_state.signal_player_loc_changed.connect(
+        #     self.game_screen.map_display.handle_player_loc_changed
+        # )
 
         # Handles player movement if arrow is pressed.
         self.user_input.signal_player_input_attempt_movement.connect(
