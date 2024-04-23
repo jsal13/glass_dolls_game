@@ -1,15 +1,28 @@
+import threading
 import curses
 
 from glassdolls import logger
-from glassdolls.constants import (DESCRIPTION_HEIGHT, HORIZ_PADDING,
-                                  MAP_HEIGHT, MAP_TOWN_TEST_FILE, MAP_WIDTH,
-                                  MAX_SCREEN_WIDTH, TERMINAL_XY_INIT_MAP,
-                                  USER_INPUT_OPTIONS, VERT_PADDING)
+from glassdolls.constants import (
+    DESCRIPTION_HEIGHT,
+    HORIZ_PADDING,
+    MAP_HEIGHT,
+    MAP_TOWN_TEST_FILE,
+    MAP_WIDTH,
+    MAX_SCREEN_WIDTH,
+    TERMINAL_XY_INIT_MAP,
+    USER_INPUT_OPTIONS,
+    VERT_PADDING,
+)
 from glassdolls.game_data.data_init import Initializer
 from glassdolls.io.game import Game
 from glassdolls.io.input import UserInput
-from glassdolls.io.output import (DescriptionDisplay, GameScreen, GameText,
-                                  InputWindow, MapDisplay)
+from glassdolls.io.output import (
+    DescriptionDisplay,
+    GameScreen,
+    GameText,
+    InputWindow,
+    MapDisplay,
+)
 from glassdolls.io.utils import get_color_map
 from glassdolls.state.events import Event, Events
 from glassdolls.state.game import GameState
@@ -61,6 +74,7 @@ if __name__ == "__main__":
             map_color=color_map[DUNGEON_WALL_COLOR],
             player_color=color_map[PLAYER_COLOR],
         )
+        map_display.start_consumer()
 
         options = DescriptionDisplay(
             loc_start=TERMINAL_XY_INIT_MAP + Loc(MAP_WIDTH + (2 * HORIZ_PADDING), 0),
@@ -130,7 +144,6 @@ if __name__ == "__main__":
         # game_screen.description.display_dialogue(text_list=intro_text)
 
         # usr_input = game_screen.input_window.create_user_input()
-
         # Start the Game and wait for the user.
         while True:
             game.user_input.wait_for_key()

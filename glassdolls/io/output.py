@@ -1,7 +1,9 @@
 import curses
+from datetime import datetime
 import json
 import textwrap
 from copy import deepcopy
+import threading
 
 from attrs import define, field
 import pika
@@ -20,7 +22,7 @@ from glassdolls.constants import (
 )
 from glassdolls.state.maps import MapState
 from glassdolls.state.signals import SignalSender
-from glassdolls.pubsub.client import RabbitMQClient
+from glassdolls.pubsub.threaded_consumer import ThreadedConsumer
 from glassdolls.utils import Loc
 from glassdolls import logger
 
@@ -124,20 +126,24 @@ class InputWindow(Window):
 
 
 @define
-class MapDisplay(Window, SignalSender, RabbitMQClient):
+class MapDisplay(Window, SignalSender):
     _map_state: MapState = field(repr=False, default=MapState())
     player_loc: Loc = field(default=Loc(0, 0))
     map_color: int = field(default=0)
     player_color: int = field(default=512)
+    threaded_consumer: "ThreadedConsumer" = field(
+        repr=False, default=ThreadedConsumer(thread_name="MapDisplay")
+    )
 
     def __attrs_post_init__(self) -> None:
         self.init_window()
         curses.curs_set(0)
 
-        self.init_rabbitmqclient()
-        self.bind_queue(queue="player", routing_key="input")
-        self.consume_from_queue(queue="player", callback=self.handle_player_loc_changed)
-        logger.debug("I GOT HERE.")
+    def start_consumer(self) -> None:
+        # Start consumer run.
+        self.threaded_consumer.bind_queue_run(
+            queue="player", routing_key="input", callback=self.handle_player_loc_changed
+        )
 
     @property
     def map_state(self) -> MapState:
@@ -186,14 +192,14 @@ class MapDisplay(Window, SignalSender, RabbitMQClient):
         body: bytes,
     ) -> None:
         logger.debug(
-            f" [x] Received [r_key: {method.routing_key}] {json.loads(body.decode('utf-8'))}"
+            f" [x] {datetime.now().isoformat()} Received [r_key: {method.routing_key}] {json.loads(body.decode('utf-8'))}"
         )
         data = json.loads(body.decode("utf-8"))
 
         if data.get("data") is not None:
-            if data["data"].get("location") is not None:
+            if (coords := data["data"].get("location")) is not None:
                 previous_loc = deepcopy(self.player_loc)
-                self.player_loc = data["location"]
+                self.player_loc = Loc.from_tuple(coords=coords)
                 self.map_state.update_visible(self.player_loc)
                 self.display()
             else:
@@ -202,22 +208,6 @@ class MapDisplay(Window, SignalSender, RabbitMQClient):
                 )
         else:
             raise ValueError("No data associated with this payload.")
-
-    # def handle_player_loc_changed(
-    #     self, signal: str | None = None, data: dict[str, Loc] | None = None
-    # ) -> None:
-    #     self._log_handle_signal(signal=signal, data=data)
-    #     if data is not None:
-    #         if data.get("location") is not None:
-    #             previous_loc = deepcopy(self.player_loc)
-    #             self.player_loc = data["location"]
-    #             self.map_state.update_visible(self.player_loc)
-    #             # self.update_player_loc(previous_loc=previous_loc)
-    #             self.display()
-    #         else:
-    #             raise ValueError(f"Got {data}, not a dict with key 'location'.")
-    #     else:
-    #         raise ValueError("Got empty data package.")
 
 
 @define
@@ -240,7 +230,7 @@ class DescriptionDisplay(Window, SignalSender):
     title_color: int = field(default=256)
     text_color: int = field(default=0)
 
-    def __attrs_post_init_(self) -> None:
+    def __attrs_post_init__(self) -> None:
         self.init_window()
 
     @property

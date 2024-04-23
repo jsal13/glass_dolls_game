@@ -2,6 +2,7 @@ import json
 import os
 
 import dotenv
+import pika
 
 from glassdolls._types import MapTiles
 from glassdolls.utils import Loc
@@ -87,3 +88,10 @@ USER_INPUT_OPTIONS = "(←↑→↓) Move\n(L)ook\n(U)se\n(I)nventory"
 
 # FRONTEND
 FE_URI = "http://localhost:5000"
+
+
+# RABBITMQ
+EXCHANGE_NAME = "game"
+RABBITMQ_CONN_PARAMS: "pika.ConnectionParameters" = pika.ConnectionParameters(
+    "localhost"
+)

@@ -5,16 +5,14 @@ from attrs import define, field
 
 from glassdolls.backend.db_clients import MongoDB
 from glassdolls.game_data.factions import Faction
-from glassdolls.pubsub.client import RabbitMQClient
+from glassdolls.pubsub.producer import Producer
 
 
 @define
 class Initializer:
 
     mongodb: MongoDB = field(default=MongoDB(), repr=False)
-    rabbitmq_client: RabbitMQClient = field(
-        default=RabbitMQClient(exchange="game"), repr=False
-    )
+    producer: Producer = field(default=Producer(), repr=False)
     factions: list[Faction] = field(init=False)
 
     def _create_factions(self) -> list[Faction]:
@@ -33,7 +31,13 @@ class Initializer:
             )
 
     def _create_queues_for_pubsub(self) -> None:
-        self.rabbitmq_client.bind_queue(queue="player", routing_key="input")
+        try:
+            # Delete and re-init the queues.
+            self.producer.channel.queue_delete(queue="player")
+        except ValueError as e:
+            pass
+
+        self.producer.bind_queue(queue="player", routing_key="input")
 
     # def _create_puzzles(self) -> tuple[Any, Any, Any]:
     #     # TODO: Make this nicer.

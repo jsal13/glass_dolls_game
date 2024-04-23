@@ -22,3 +22,7 @@ class Loc:
 
     def __hash__(self) -> int:
         return hash((self.x, self.y))
+
+    @classmethod
+    def from_tuple(cls, coords: tuple[int, int]) -> "Loc":
+        return cls(x=coords[0], y=coords[1])
