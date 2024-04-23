@@ -50,7 +50,6 @@ class UserInput:
             )
 
         elif upper_key_value == "L":  # Look
-            logger.debug(f"User input 'Look'.")
             self.producer.send_to_queue(routing_key="user_input.look", body=body)
 
         elif upper_key_value == "Q":

@@ -53,9 +53,6 @@ class Game:
         properties: "pika.BasicProperties",
         body: bytes,
     ) -> None:
-        logger.debug(
-            f" [x] TRIAGE: {datetime.now().isoformat()} Received [r_key: {method.routing_key}] {json.loads(body.decode('utf-8'))}."
-        )
         data = json.loads(body.decode("utf-8"))
         # Clean.
         if method.routing_key == "user_input.attempt_move":

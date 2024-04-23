@@ -42,5 +42,25 @@ class Producer:
             body=json.dumps(body).encode("utf-8"),
         )
         logger.debug(
-            f" [x] {datetime.now().isoformat()} Sent `{body}` with routing key `{routing_key}`"
+            json.dumps(
+                {
+                    "streams": [
+                        {
+                            "stream": {"label": "glassdolls"},
+                            "values": [
+                                [
+                                    str(time.time_ns()),
+                                    json.dumps(
+                                        {
+                                            "event": "send-to-queue",
+                                            "routing_key": routing_key,
+                                            "msg": body,
+                                        }
+                                    ),
+                                ]
+                            ],
+                        }
+                    ]
+                }
+            )
         )

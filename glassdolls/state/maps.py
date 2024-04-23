@@ -66,4 +66,6 @@ class MapState:
                 body={"event": self.events.data[loc].as_json()},
             )
         else:
-            logger.debug("Nothing looks interesting...")
+            # TODO: Print this in display!
+            pass
+            # logger.debug("Nothing looks interesting...")
