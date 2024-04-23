@@ -18,7 +18,6 @@ class LokiHandler(logging.Handler):
         resp = requests.post(
             url, log_entry, headers={"Content-type": "application/json"}
         )
-        print(resp.content)
 
 
 loki_handler = LokiHandler()

@@ -14,18 +14,19 @@ from glassdolls.constants import (
     VERT_PADDING,
 )
 from glassdolls.game_data.data_init import Initializer
-from glassdolls.io.game import Game
+from glassdolls.state.game import Game
 from glassdolls.io.input import UserInput
-from glassdolls.io.output import (
+from glassdolls.game_data.game_text import GameText
+from glassdolls.io.display_components.description_display_window import (
     DescriptionDisplay,
-    GameScreen,
-    GameText,
-    InputWindow,
-    MapDisplay,
 )
+from glassdolls.io.display_components.input_window import InputWindow
+from glassdolls.io.display_components.map_window import MapDisplay
+from glassdolls.io.game_screen import GameScreen
+
 from glassdolls.io.utils import get_color_map
 from glassdolls.state.events import Event, Events
-from glassdolls.state.maps import MapState
+from glassdolls.state.map import MapState
 from glassdolls.state.player import PlayerState
 from glassdolls.utils import Loc
 

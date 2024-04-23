@@ -36,3 +36,13 @@ activate:
 test:
   coverage run -m pytest --doctest-modules tests/
   coverage report && coverage html
+
+# Requires wslu
+# Requires running:
+# wslview -r $(wslpath -au 'C:\Program Files (x86)\Google\Chrome\Application\chrome.exe')
+ui:
+  www-browser http://localhost:5000  # App 
+  www-browser http://localhost:8001/docs/  # Backend
+  www-browser http://localhost:15672  # RabbitMQ
+  www-browser http://localhost:8081  # Mongo Express
+  www-browser http://localhost:3000  # Loki

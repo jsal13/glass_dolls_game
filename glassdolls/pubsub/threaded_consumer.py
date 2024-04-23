@@ -1,16 +1,14 @@
 from typing import Any, Callable
 import threading
 from datetime import datetime
+import uuid
 
 from attrs import define, field
 import pika
 
 from glassdolls import logger
 
-
-from glassdolls.constants import EXCHANGE_NAME, RABBITMQ_CONN_PARAMS
-
-THREADS = 1
+from glassdolls.constants import DEFAULT_EXCHANGE, RABBITMQ_CONN_PARAMS, DEFAULT_QUEUE
 
 
 @define
@@ -21,8 +19,8 @@ class ThreadedConsumer(threading.Thread):
     channel: "pika.adapters.blocking_connection.BlockingChannel" = field(
         init=False, repr=False
     )
-    queue: str = field(default="game.queue")
-    thread_name: str = field(default="")
+    queue: str = field(default=DEFAULT_QUEUE)
+    thread_name: str = field(default=uuid.uuid1().hex)
 
     def __hash__(self) -> int:
         return hash((datetime.now(),))
@@ -35,7 +33,7 @@ class ThreadedConsumer(threading.Thread):
     def bind_queue(self, routing_key: str) -> None:
         self.channel.queue_declare(queue=self.queue, auto_delete=False)
         self.channel.queue_bind(
-            queue=self.queue, exchange=EXCHANGE_NAME, routing_key=routing_key
+            queue=self.queue, exchange=DEFAULT_EXCHANGE, routing_key=routing_key
         )
 
     def start_thread(self, callback: Callable[..., Any]) -> None:

@@ -47,7 +47,7 @@ MONGO_CONNECTION_STRING: str = os.getenv(
 
 # PUZZLE METADATA
 DIFFICULTY_RANK = {
-    "ciphers": {"substitution": "Medium", "cesaer": "Easy"},
+    "ciphers": {"substitution": "Medium", "Cesaer": "Easy"},
     "math": {
         "sums": "Easy",
         "products": "Easy",
@@ -76,6 +76,17 @@ ASCII_CODES = {
     "BR_Corner": "╝",
 }
 
+COLORS = {
+    "player": "CYAN",
+    "desc_title": "CYAN",
+    "desc_text": "CYAN",
+    "options_title": "CYAN",
+    "options_text": "WHITE",
+    "line": "YELLOW",
+    "dungeon_wall": "WHITE",
+    "input_border": "CYAN",
+}
+
 # USER CONSTANTS
 USER_MOVEMENT = {
     "KEY_LEFT": Loc(-1, 0),
@@ -91,7 +102,12 @@ FE_URI = "http://localhost:5000"
 
 
 # RABBITMQ
-EXCHANGE_NAME = "game"
+
 RABBITMQ_CONN_PARAMS: "pika.ConnectionParameters" = pika.ConnectionParameters(
     "localhost"
 )
+DEFAULT_QUEUE = "game.queue"
+DEFAULT_EXCHANGE = "game"
+
+
+# LOGGING

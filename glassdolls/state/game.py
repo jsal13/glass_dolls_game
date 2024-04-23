@@ -9,10 +9,10 @@ import pika
 
 from glassdolls import logger
 from glassdolls.io.input import UserInput
-from glassdolls.io.output import GameScreen
+from glassdolls.io.game_screen import GameScreen
 from glassdolls.state.events import Event
 from glassdolls.state.player import PlayerState
-from glassdolls.state.maps import MapState
+from glassdolls.state.map import MapState
 
 from glassdolls.pubsub.producer import Producer
 from glassdolls.pubsub.threaded_consumer import ThreadedConsumer
@@ -26,6 +26,7 @@ class Game:
     user_input: UserInput = field(repr=False, default=UserInput())
     player_state: PlayerState = field(repr=False, default=PlayerState())
     map_state: MapState = field(repr=False, default=MapState())
+
     consumer: ThreadedConsumer = field(
         repr=False, default=ThreadedConsumer(thread_name="game_thread")
     )

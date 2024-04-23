@@ -12,5 +12,5 @@ pytest~=8.1
 ruff~=0.3
 types-beautifulsoup4~=4.12
 types-requests~=2.31
-types-pika~=1.2
+types-pika
 cattrs~=23.2

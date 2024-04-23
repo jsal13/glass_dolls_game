@@ -7,19 +7,19 @@ from attrs import define, field
 import pika
 
 from glassdolls import logger
-from glassdolls.constants import RABBITMQ_CONN_PARAMS
+from glassdolls.constants import RABBITMQ_CONN_PARAMS, DEFAULT_QUEUE, DEFAULT_EXCHANGE
 
 
 @define(slots=False)
 class Producer:
-    exchange: str = field(default="game")
+    exchange: str = field(default=DEFAULT_EXCHANGE)
     connection: "pika.BlockingConnection" = field(
         default=pika.BlockingConnection(RABBITMQ_CONN_PARAMS), repr=False
     )
     channel: "pika.adapters.blocking_connection.BlockingChannel" = field(
         init=False, repr=False
     )
-    queue: str = field(default="game.queue")
+    queue: str = field(default=DEFAULT_QUEUE)
 
     def __attrs_post_init__(self) -> None:
         self.channel = self.connection.channel()

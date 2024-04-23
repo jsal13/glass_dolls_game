@@ -6,6 +6,7 @@ from attrs import define, field
 from glassdolls.backend.db_clients import MongoDB
 from glassdolls.game_data.factions import Faction
 from glassdolls.pubsub.producer import Producer
+from glassdolls.constants import DEFAULT_QUEUE
 
 
 @define
@@ -33,7 +34,7 @@ class Initializer:
     def _create_queues_for_pubsub(self) -> None:
         try:
             # Delete and re-init the queues.
-            self.producer.channel.queue_delete(queue="game.queue")
+            self.producer.channel.queue_delete(queue=DEFAULT_QUEUE)
         except ValueError as e:
             pass
 
