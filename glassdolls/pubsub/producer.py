@@ -7,27 +7,31 @@ import pika
 from attrs import define, field
 
 from glassdolls import logger
-from glassdolls.constants import (DEFAULT_EXCHANGE, DEFAULT_QUEUE,
-                                  RABBITMQ_CONN_PARAMS)
+from glassdolls.constants import DEFAULT_EXCHANGE, DEFAULT_QUEUE, RABBITMQ_CONN_PARAMS
 
 
 @define(slots=False)
 class Producer:
-    exchange: str = field(default=DEFAULT_EXCHANGE)
-    connection: "pika.BlockingConnection" = field(
-        default=pika.BlockingConnection(RABBITMQ_CONN_PARAMS), repr=False
-    )
-    channel: "pika.adapters.blocking_connection.BlockingChannel" = field(
-        init=False, repr=False
-    )
-    queue: str = field(default=DEFAULT_QUEUE)
+    exchange: str
+    connection: "pika.BlockingConnection"
+    channel: "pika.adapters.blocking_connection.BlockingChannel"
+    queue: str
 
-    def __attrs_post_init__(self) -> None:
-        self.channel = self.connection.channel()
-        self.channel.exchange_declare(
-            exchange=self.exchange,
+    @classmethod
+    def create_standard_producer(cls) -> "Producer":
+        exchange = DEFAULT_EXCHANGE
+        connection = pika.BlockingConnection(RABBITMQ_CONN_PARAMS)
+        channel = connection.channel()
+        queue = DEFAULT_QUEUE
+
+        _cls = cls(
+            exchange=exchange, channel=channel, connection=connection, queue=queue
+        )
+        _cls.channel.exchange_declare(
+            exchange=_cls.exchange,
             exchange_type=pika.exchange_type.ExchangeType("topic"),
         )
+        return _cls
 
     def bind_queue(self, routing_key: str) -> None:
         # Create and bind the queue.

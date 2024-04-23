@@ -10,7 +10,7 @@ from glassdolls.utils import Loc
 
 @define
 class MapDisplay(Window):
-    _map_state: MapState = field(repr=False, default=MapState())
+    _map_state: MapState = field(repr=False, default=MapState.create_mapstate())
     player_loc: Loc = field(default=Loc(0, 0))
     map_color: int = field(default=0)
     player_color: int = field(default=512)

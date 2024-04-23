@@ -11,21 +11,22 @@ from glassdolls.pubsub.producer import Producer
 
 @define
 class UserInput:
-    subwindow: "curses._CursesWindow" = field(init=False, repr=False)
-    producer: Producer = field(default=Producer(), repr=False)
+    subwindow: "curses._CursesWindow"
+    producer: Producer
 
-    def __attrs_post_init__(self) -> None:
-        self.subwindow = curses.newwin(
-            1,
-            1,
-            0,
-            0,
-        )
+    @classmethod
+    def create_user_input(cls) -> "UserInput":
+        producer = Producer.create_standard_producer()
+        subwindow = curses.newwin(1, 1, 0, 0)
+        _cls = cls(subwindow=subwindow, producer=producer)
+
         # REF: https://docs.python.org/3/library/curses.html#curses.window.keypad
-        self.subwindow.keypad(True)
+        _cls.subwindow.keypad(True)
 
-        self.producer.bind_queue(routing_key="user_input.attempt_move")
-        self.producer.bind_queue(routing_key="user_input.look")
+        _cls.producer.bind_queue(routing_key="user_input.attempt_move")
+        _cls.producer.bind_queue(routing_key="user_input.look")
+
+        return _cls
 
     def wait_for_key(self) -> str:
         while True:

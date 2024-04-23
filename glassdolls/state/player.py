@@ -9,19 +9,35 @@ from glassdolls.utils import Loc
 
 @define
 class PlayerState:
-    _loc: Loc = field(init=False)
+    _loc: Loc
 
     health: int = field(default=10)
     magic: int = field(default=0)
     strength: int = field(default=1)
     intelligence: int = field(default=1)
 
-    producer: Producer = field(default=Producer(), repr=False)
+    producer: Producer = field(default=Producer.create_standard_producer(), repr=False)
 
-    def __attrs_post_init__(self) -> None:
-        self.loc = Loc(0, 0)  # Initialize Loc.
-        self.producer.bind_queue(routing_key="player.loc_changed")
-        self.producer.bind_queue(routing_key="player.look")
+    @classmethod
+    def create_default_playerstate(
+        cls, health: int = 10, magic: int = 0, strength: int = 1, intelligence: int = 1
+    ) -> "PlayerState":
+        producer = Producer.create_standard_producer()
+
+        _cls = cls(
+            loc=Loc(0, 0),  # Is this how we do a property?
+            health=health,
+            magic=magic,
+            strength=strength,
+            intelligence=intelligence,
+            producer=producer,
+        )
+
+        # Binding queues.
+        _cls.producer.bind_queue(routing_key="player.loc_changed")
+        _cls.producer.bind_queue(routing_key="player.look")
+
+        return _cls
 
     @property
     def loc(self) -> Loc:

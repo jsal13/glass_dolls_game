@@ -11,21 +11,29 @@ NUM_PHRASES_PER_FACTION = 5
 
 @define
 class Faction:
-    name: str = field(default="")
-    element: str = field(default="")
-    mantra: str = field(init=False, default="")
-    sub_cipher_translation_table: TranslationTableStrKey = field(init=False)
-    phrases: list[dict[str, Any]] = field(init=False)
+    name: str
+    element: str
+    mantra: str
+    sub_cipher_translation_table: TranslationTableStrKey
+    phrases: list[dict[str, Any]]
 
-    def __attrs_post_init__(self) -> None:
-        self.sub_cipher_translation_table = ciphers.translation_table_make_str_keys(
+    @classmethod
+    def create_faction(cls, name: str, element: str) -> "Faction":
+        sub_cipher_translation_table = ciphers.translation_table_make_str_keys(
             ciphers.make_substitution_cipher_translation_table()
         )  # Mongo can't handle int keys.
-        self.mantra = mantras.generate_mantra()
+        mantra = mantras.generate_mantra()
         _phrases = phrases.get_random_phrases(n=NUM_PHRASES_PER_FACTION)
 
         # The "code" here is not meant to be secure, just a hash of a small size that makes a reasonable "user copy-paste" code to represent this particular phrase.  Used for mongo fetching.
-        self.phrases = []
+
+        _cls = cls(
+            name=name,
+            element=element,
+            mantra=mantra,
+            sub_cipher_translation_table=sub_cipher_translation_table,
+            phrases=[],
+        )
         for _phrase in _phrases:
 
             # Creates solution, adds it to the phrase.
@@ -33,14 +41,14 @@ class Faction:
             solution_sentence = f"\nTHE CODE IS {solution}."
             phrase = _phrase + solution_sentence
 
-            self.phrases.append(
+            _cls.phrases.append(
                 {
                     "code": hashlib.blake2s(
                         phrase.encode("utf-8"),
                         digest_size=8,
                     ).hexdigest(),
                     "phrase": phrase,
-                    "sub_cipher": self._translate_text_sub_cipher(phrase),
+                    "sub_cipher": _cls._translate_text_sub_cipher(phrase),
                     "solution": solution,
                     "solution_hash": hashlib.blake2s(
                         solution.encode("utf-8"),
@@ -48,6 +56,7 @@ class Faction:
                     ).hexdigest(),
                 }
             )
+        return _cls
 
     def _translate_text_sub_cipher(self, text: str) -> str:
         """Translates text with a substitution cipher."""

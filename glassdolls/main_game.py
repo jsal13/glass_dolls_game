@@ -2,14 +2,22 @@ import curses
 import threading
 
 from glassdolls import logger
-from glassdolls.constants import (DESCRIPTION_HEIGHT, HORIZ_PADDING,
-                                  MAP_HEIGHT, MAP_TOWN_TEST_FILE, MAP_WIDTH,
-                                  MAX_SCREEN_WIDTH, TERMINAL_XY_INIT_MAP,
-                                  USER_INPUT_OPTIONS, VERT_PADDING)
+from glassdolls.constants import (
+    DESCRIPTION_HEIGHT,
+    HORIZ_PADDING,
+    MAP_HEIGHT,
+    MAP_TOWN_TEST_FILE,
+    MAP_WIDTH,
+    MAX_SCREEN_WIDTH,
+    TERMINAL_XY_INIT_MAP,
+    USER_INPUT_OPTIONS,
+    VERT_PADDING,
+)
 from glassdolls.game_data.data_init import Initializer
 from glassdolls.game_data.game_text import GameText
-from glassdolls.io.display_components.description_display_window import \
-    DescriptionDisplay
+from glassdolls.io.display_components.description_display_window import (
+    DescriptionDisplay,
+)
 from glassdolls.io.display_components.input_window import InputWindow
 from glassdolls.io.display_components.map_window import MapDisplay
 from glassdolls.io.game_screen import GameScreen
@@ -20,6 +28,7 @@ from glassdolls.state.game import Game
 from glassdolls.state.map import MapState
 from glassdolls.state.player import PlayerState
 from glassdolls.utils import Loc
+from glassdolls.game_data.factions import Faction
 
 PLAYER_COLOR = "CYAN"
 DESC_TITLE_COLOR = "CYAN"
@@ -35,21 +44,29 @@ if __name__ == "__main__":
     def run(term: "curses._CursesWindow") -> None:
         # Initialize Data.
         # TODO: What if we don't care about this?  Can we turn it off?
-        initializer = Initializer()
+        # GAME
+        FACTIONS = [
+            Faction.create_faction(name="Hemlock", element="Dark"),
+            Faction.create_faction(name="Dawnstar", element="Light"),
+            Faction.create_faction(name="Sunfall", element="Ice"),
+            Faction.create_faction(name="Galeweaver", element="Wind"),
+        ]
+
+        initializer = Initializer(factions=FACTIONS)
         initializer.initialize()
         factions = initializer.factions
 
         color_map = get_color_map()
 
         # Text, Towns, Dungeons.
-        game_text = GameText()
+        game_text = GameText.create_gametext()
 
         # Events, Map, and Player States.
         event_metadata = factions[0].phrases[0]
         sample_event = Event(code=event_metadata["code"])
         events = Events(data={Loc(5, 3): sample_event})  # Initial events.
-        map_state = MapState(events=events, map_file=MAP_TOWN_TEST_FILE)
-        player_state = PlayerState()
+        map_state = MapState.create_mapstate(events=events, map_file=MAP_TOWN_TEST_FILE)
+        player_state = PlayerState.create_default_playerstate()
 
         # Terminal Output Classes
         map_display = MapDisplay(
@@ -111,15 +128,17 @@ if __name__ == "__main__":
             input_window=input_window,
         )
 
-        user_input = UserInput()
+        user_input = UserInput.create_user_input()
 
-        game = Game(
+        game = Game.create_game(
             term=term,
             game_screen=game_screen,
             user_input=user_input,
             map_state=map_state,
             player_state=player_state,
         )
+
+        # TODO: Can I put this into init?
         game.consumer.start_thread(callback=game.triage)
 
         # GAME STATE AND DISPLAY COMPLETE, INITIALIZING VALUES.

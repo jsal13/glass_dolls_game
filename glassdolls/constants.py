@@ -108,6 +108,3 @@ RABBITMQ_CONN_PARAMS: "pika.ConnectionParameters" = pika.ConnectionParameters(
 )
 DEFAULT_QUEUE = "game.queue"
 DEFAULT_EXCHANGE = "game"
-
-
-# LOGGING

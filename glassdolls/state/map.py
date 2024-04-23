@@ -1,4 +1,5 @@
 from typing import Any
+from copy import deepcopy
 
 from attrs import define, field
 
@@ -12,22 +13,31 @@ from glassdolls.utils import Loc
 
 @define
 class MapState:
-    events: Events = field(repr=False, default=Events())
-    map_file: str = field(default=MAP_TOWN_TEST_FILE)
-    map_tiles: MapTiles = field(repr=False, init=False)
-    visible_map_tiles: MapTiles = field(repr=False, init=False)
+    events: Events
+    map_file: str
+    map_tiles: MapTiles
+    visible_map_tiles: MapTiles
     # num_visible_tiles_vert: int = field(default=MAP_HEIGHT)
     # num_visible_tiles_horiz: int = field(default=MAP_WIDTH)
-    producer: Producer = field(default=Producer(), repr=False)
+    producer: Producer
 
-    def __attrs_post_init__(self) -> None:
-        self._load_map()
-        self.visible_map_tiles = self.map_tiles  # TODO: Temp fix before update_visible.
-        # self.update_visible(player_loc=Loc(1,1))
+    @classmethod
+    def create_mapstate(
+        cls, events: Events = Events(), map_file: str = MAP_TOWN_TEST_FILE
+    ) -> "MapState":
+        with open(map_file, "r", encoding="utf-8") as f:
+            map_tiles = [list(i.strip()) for i in f.readlines()]
 
-    def _load_map(self) -> None:
-        with open(self.map_file, "r", encoding="utf-8") as f:
-            self.map_tiles = [list(i.strip()) for i in f.readlines()]
+        producer = Producer.create_standard_producer()
+        _cls = cls(
+            events=events,
+            map_file=map_file,
+            map_tiles=map_tiles,
+            visible_map_tiles=deepcopy(map_tiles),
+            producer=producer,
+        )
+
+        return _cls
 
     def is_collider(self, loc: Loc) -> bool:
         if self.map_tiles[loc.y][loc.x] == MAP_LEGEND_JSON["dungeon"]["wall"]:

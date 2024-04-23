@@ -5,4 +5,4 @@ from glassdolls.state.map import MapState
 
 
 def test_map_mapstate_initializes() -> None:
-    MapState()
+    MapState.create_mapstate()

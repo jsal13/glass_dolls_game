@@ -4,4 +4,4 @@ from glassdolls.state.player import PlayerState
 
 
 def test_map_playerstate_initializes() -> None:
-    PlayerState()
+    PlayerState.create_default_playerstate()

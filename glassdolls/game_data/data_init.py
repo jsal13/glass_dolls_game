@@ -1,6 +1,3 @@
-import random
-from typing import Any
-
 from attrs import define, field
 
 from glassdolls.backend.db_clients import MongoDB
@@ -11,18 +8,10 @@ from glassdolls.pubsub.producer import Producer
 
 @define
 class Initializer:
+    factions: list[Faction]
 
     mongodb: MongoDB = field(default=MongoDB(), repr=False)
-    producer: Producer = field(default=Producer(), repr=False)
-    factions: list[Faction] = field(init=False)
-
-    def _create_factions(self) -> list[Faction]:
-        return [
-            Faction(name="Hemlock", element="Dark"),
-            Faction(name="Dawnstar", element="Light"),
-            Faction(name="Sunfall", element="Ice"),
-            Faction(name="Galeweaver", element="Wind"),
-        ]
+    producer: Producer = field(default=Producer.create_standard_producer(), repr=False)
 
     def _populate_faction_collection(self) -> None:
         """Populate Mongo ``faction`` collection."""
@@ -53,7 +42,6 @@ class Initializer:
         """Main run command."""
         # TODO: We need to make this idempotent.
         self.mongodb.connect()
-        self.factions = self._create_factions()
         self._populate_faction_collection()
         self._create_queues_for_pubsub()
 

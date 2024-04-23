@@ -22,9 +22,6 @@ class Event:
     color: str = field(default="RED")
     active: bool = field(default=True)
 
-    def __attrs_post_init__(self) -> None:
-        pass
-
     def make_title(self) -> str:
         return str(self.etype)
 

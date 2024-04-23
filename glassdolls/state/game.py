@@ -21,30 +21,61 @@ from glassdolls.utils import Loc
 @define
 class Game:
     term: "curses._CursesWindow" = field(repr=False)
-    game_screen: GameScreen = field(repr=False, default=GameScreen())
-    user_input: UserInput = field(repr=False, default=UserInput())
-    player_state: PlayerState = field(repr=False, default=PlayerState())
-    map_state: MapState = field(repr=False, default=MapState())
-
+    game_screen: GameScreen
+    user_input: UserInput
+    player_state: PlayerState
+    map_state: MapState
     consumer: ThreadedConsumer = field(
-        repr=False, default=ThreadedConsumer(thread_name="game_thread")
+        repr=False,
+        default=ThreadedConsumer.create_standard_threadedconsumer(
+            thread_name="game_thread"
+        ),
     )
-    producer: Producer = field(repr=False, default=Producer())
+    producer: Producer = field(repr=False, default=Producer.create_standard_producer())
 
-    def __attrs_post_init__(self) -> None:
-        self.game_screen.draw_lines()
-        self.game_screen.term.refresh()
+    @classmethod
+    def create_game(
+        cls,
+        term: "curses._CursesWindow",
+        game_screen: GameScreen,
+        user_input: UserInput,
+        player_state: PlayerState,
+        map_state: MapState,
+    ) -> "Game":
+
+        consumer = (
+            ThreadedConsumer.create_standard_threadedconsumer(
+                thread_name="game_thread"
+            ),
+        )
+
+        producer = Producer.create_standard_producer()
+
+        _cls = cls(
+            term=term,
+            game_screen=game_screen,
+            user_input=user_input,
+            player_state=player_state,
+            map_state=map_state,
+        )
+
+        # Signals.
+
+        _cls.game_screen.draw_lines()
+        _cls.game_screen.term.refresh()
 
         # User Input.
-        self.consumer.bind_queue(routing_key="user_input.attempt_move")
-        self.consumer.bind_queue(routing_key="user_input.look")
+        _cls.consumer.bind_queue(routing_key="user_input.attempt_move")
+        _cls.consumer.bind_queue(routing_key="user_input.look")
 
         # Movement.
-        self.consumer.bind_queue(routing_key="player.loc_changed")
+        _cls.consumer.bind_queue(routing_key="player.loc_changed")
 
         # Looking.
-        self.consumer.bind_queue(routing_key="player.look")
-        self.consumer.bind_queue(routing_key="player.found_event")
+        _cls.consumer.bind_queue(routing_key="player.look")
+        _cls.consumer.bind_queue(routing_key="player.found_event")
+
+        return _cls
 
     def triage(
         self,

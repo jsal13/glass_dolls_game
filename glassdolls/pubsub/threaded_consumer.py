@@ -7,28 +7,33 @@ import pika
 from attrs import define, field
 
 from glassdolls import logger
-from glassdolls.constants import (DEFAULT_EXCHANGE, DEFAULT_QUEUE,
-                                  RABBITMQ_CONN_PARAMS)
+from glassdolls.constants import DEFAULT_EXCHANGE, DEFAULT_QUEUE, RABBITMQ_CONN_PARAMS
 
 
 @define
 class ThreadedConsumer(threading.Thread):
-    connection: "pika.BlockingConnection" = field(
-        default=pika.BlockingConnection(RABBITMQ_CONN_PARAMS), repr=False
-    )
-    channel: "pika.adapters.blocking_connection.BlockingChannel" = field(
-        init=False, repr=False
-    )
-    queue: str = field(default=DEFAULT_QUEUE)
-    thread_name: str = field(default=uuid.uuid1().hex)
+    connection: "pika.BlockingConnection"
+    channel: "pika.adapters.blocking_connection.BlockingChannel"
+    queue: str
+    thread_name: str
 
     def __hash__(self) -> int:
         return hash((datetime.now(),))
 
-    def __attrs_post_init__(self) -> None:
-        threading.Thread.__init__(self)
+    @classmethod
+    def create_standard_threadedconsumer(
+        cls, thread_name: str = uuid.uuid1().hex
+    ) -> "ThreadedConsumer":
+        connection = pika.BlockingConnection(RABBITMQ_CONN_PARAMS)
+        channel = connection.channel()
+        queue = DEFAULT_QUEUE
 
-        self.channel = self.connection.channel()
+        _cls = cls(
+            connection=connection, channel=channel, queue=queue, thread_name=thread_name
+        )
+
+        threading.Thread.__init__(_cls)
+        return _cls
 
     def bind_queue(self, routing_key: str) -> None:
         self.channel.queue_declare(queue=self.queue, auto_delete=False)
