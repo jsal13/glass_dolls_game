@@ -1,13 +1,12 @@
 import string
+
 import pytest
 
-from glassdolls.puzzles.ciphers import (
-    cesaer_cipher,
-    make_substitution_cipher_translation_table,
-    apply_substitution_cipher,
-    translation_table_make_str_keys,
-)
 from glassdolls._types import TranslationTable, TranslationTableStrKey
+from glassdolls.puzzles.ciphers import (
+    apply_substitution_cipher, cesaer_cipher,
+    make_substitution_cipher_translation_table,
+    translation_table_make_str_keys)
 
 
 @pytest.fixture()

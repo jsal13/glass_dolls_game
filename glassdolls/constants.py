@@ -2,6 +2,7 @@ import json
 import os
 
 import dotenv
+import pika
 
 from glassdolls._types import MapTiles
 from glassdolls.utils import Loc
@@ -46,7 +47,7 @@ MONGO_CONNECTION_STRING: str = os.getenv(
 
 # PUZZLE METADATA
 DIFFICULTY_RANK = {
-    "ciphers": {"substitution": "Medium", "cesaer": "Easy"},
+    "ciphers": {"substitution": "Medium", "Cesaer": "Easy"},
     "math": {
         "sums": "Easy",
         "products": "Easy",
@@ -75,6 +76,17 @@ ASCII_CODES = {
     "BR_Corner": "╝",
 }
 
+COLORS = {
+    "player": "CYAN",
+    "desc_title": "CYAN",
+    "desc_text": "CYAN",
+    "options_title": "CYAN",
+    "options_text": "WHITE",
+    "line": "YELLOW",
+    "dungeon_wall": "WHITE",
+    "input_border": "CYAN",
+}
+
 # USER CONSTANTS
 USER_MOVEMENT = {
     "KEY_LEFT": Loc(-1, 0),
@@ -87,3 +99,15 @@ USER_INPUT_OPTIONS = "(←↑→↓) Move\n(L)ook\n(U)se\n(I)nventory"
 
 # FRONTEND
 FE_URI = "http://localhost:5000"
+
+
+# RABBITMQ
+
+RABBITMQ_CONN_PARAMS: "pika.ConnectionParameters" = pika.ConnectionParameters(
+    "localhost"
+)
+DEFAULT_QUEUE = "game.queue"
+DEFAULT_EXCHANGE = "game"
+
+
+# LOGGING

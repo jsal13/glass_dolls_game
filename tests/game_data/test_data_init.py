@@ -1,3 +1,3 @@
 import pytest
 
-from glassdolls.io.game import Game
+from glassdolls.state.game import Game

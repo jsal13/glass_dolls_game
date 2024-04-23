@@ -1,35 +1,29 @@
 from typing import Any
 
 from attrs import define, field
-from blinker import NamedSignal, signal
 
 from glassdolls import logger
 from glassdolls._types import MapTiles
 from glassdolls.constants import MAP_LEGEND_JSON, MAP_TOWN_TEST_FILE
+from glassdolls.pubsub.producer import Producer
 from glassdolls.state.events import Events
-from glassdolls.state.signals import SignalSender
 from glassdolls.utils import Loc
 
 
 @define
-class MapState(SignalSender):
+class MapState:
     events: Events = field(repr=False, default=Events())
     map_file: str = field(default=MAP_TOWN_TEST_FILE)
     map_tiles: MapTiles = field(repr=False, init=False)
     visible_map_tiles: MapTiles = field(repr=False, init=False)
     # num_visible_tiles_vert: int = field(default=MAP_HEIGHT)
     # num_visible_tiles_horiz: int = field(default=MAP_WIDTH)
-
-    signal_player_looked_at_event: NamedSignal = field(init=False, repr=False)
+    producer: Producer = field(default=Producer(), repr=False)
 
     def __attrs_post_init__(self) -> None:
         self._load_map()
         self.visible_map_tiles = self.map_tiles  # TODO: Temp fix before update_visible.
         # self.update_visible(player_loc=Loc(1,1))
-
-        self.signal_player_looked_at_event = signal(
-            f"{self.__class__.__name__}_player_looked_at_event"
-        )
 
     def _load_map(self) -> None:
         with open(self.map_file, "r", encoding="utf-8") as f:
@@ -37,13 +31,11 @@ class MapState(SignalSender):
 
     def is_collider(self, loc: Loc) -> bool:
         if self.map_tiles[loc.y][loc.x] == MAP_LEGEND_JSON["dungeon"]["wall"]:
-            logger.debug(f"Player hit collider @ {loc}.")
             return True
         return False
 
     def is_event(self, loc: Loc) -> bool:
         if self.events.data.get(loc) is not None:
-            logger.debug(f"Player is on an event @ {loc}.")
             return True
         return False
 
@@ -64,23 +56,16 @@ class MapState(SignalSender):
         # logger.debug("Updating visible map...")
         # logger.debug(f"Map now has boundaries: {tiles_left}, {tiles_right}, {tiles_up}, {tiles_down}.")
 
-    def handle_signal_player_look(
-        self, signal: str | None = None, data: dict[str, Any] | None = None
-    ) -> None:
-        self._log_handle_signal(signal=signal, data=data)
+    def handle_player_look(self, coords: tuple[int, int]) -> None:
 
-        if data is not None:
-            if data.get("location") is not None:
-                event_exists = self.is_event(loc=data["location"])
-                if event_exists:
-                    self.send_signal(
-                        self.signal_player_looked_at_event,
-                        data={"event": self.events.data[data["location"]]},
-                    )
-                else:
-                    logger.debug("Nothing looks interesting...")
-
-            else:
-                raise ValueError(f"Got {data}, not a dict with key 'location'.")
+        loc = Loc.from_tuple(coords=coords)
+        event_exists = self.is_event(loc=Loc.from_tuple(coords))
+        if event_exists:
+            self.producer.send_to_queue(
+                routing_key="player.found_event",
+                body={"event": self.events.data[loc].as_json()},
+            )
         else:
-            raise ValueError("Got empty data package.")
+            # TODO: Print this in display!
+            pass
+            # logger.debug("Nothing looks interesting...")

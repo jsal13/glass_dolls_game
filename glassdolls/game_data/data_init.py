@@ -1,14 +1,20 @@
 import random
 from typing import Any
 
+from attrs import define, field
+
 from glassdolls.backend.db_clients import MongoDB
+from glassdolls.constants import DEFAULT_QUEUE
 from glassdolls.game_data.factions import Faction
+from glassdolls.pubsub.producer import Producer
 
 
+@define
 class Initializer:
 
-    def __init__(self, mongodb: MongoDB = MongoDB()) -> None:
-        self.mongodb = mongodb
+    mongodb: MongoDB = field(default=MongoDB(), repr=False)
+    producer: Producer = field(default=Producer(), repr=False)
+    factions: list[Faction] = field(init=False)
 
     def _create_factions(self) -> list[Faction]:
         return [
@@ -24,6 +30,13 @@ class Initializer:
             self.mongodb.insert_values(
                 collection="factions", values=faction.to_mongo_format()
             )
+
+    def _create_queues_for_pubsub(self) -> None:
+        try:
+            # Delete and re-init the queues.
+            self.producer.channel.queue_delete(queue=DEFAULT_QUEUE)
+        except ValueError as e:
+            pass
 
     # def _create_puzzles(self) -> tuple[Any, Any, Any]:
     #     # TODO: Make this nicer.
@@ -42,6 +55,7 @@ class Initializer:
         self.mongodb.connect()
         self.factions = self._create_factions()
         self._populate_faction_collection()
+        self._create_queues_for_pubsub()
 
     # def populate_spell_table(self, spell_mapping: MantraChantList) -> None:
     #     for spell, syllables in spell_mapping.items():

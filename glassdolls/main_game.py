@@ -1,4 +1,5 @@
 import curses
+import threading
 
 from glassdolls import logger
 from glassdolls.constants import (DESCRIPTION_HEIGHT, HORIZ_PADDING,
@@ -6,14 +7,17 @@ from glassdolls.constants import (DESCRIPTION_HEIGHT, HORIZ_PADDING,
                                   MAX_SCREEN_WIDTH, TERMINAL_XY_INIT_MAP,
                                   USER_INPUT_OPTIONS, VERT_PADDING)
 from glassdolls.game_data.data_init import Initializer
-from glassdolls.io.game import Game
+from glassdolls.game_data.game_text import GameText
+from glassdolls.io.display_components.description_display_window import \
+    DescriptionDisplay
+from glassdolls.io.display_components.input_window import InputWindow
+from glassdolls.io.display_components.map_window import MapDisplay
+from glassdolls.io.game_screen import GameScreen
 from glassdolls.io.input import UserInput
-from glassdolls.io.output import (DescriptionDisplay, GameScreen, GameText,
-                                  InputWindow, MapDisplay)
 from glassdolls.io.utils import get_color_map
 from glassdolls.state.events import Event, Events
-from glassdolls.state.game import GameState
-from glassdolls.state.maps import MapState
+from glassdolls.state.game import Game
+from glassdolls.state.map import MapState
 from glassdolls.state.player import PlayerState
 from glassdolls.utils import Loc
 
@@ -46,9 +50,6 @@ if __name__ == "__main__":
         events = Events(data={Loc(5, 3): sample_event})  # Initial events.
         map_state = MapState(events=events, map_file=MAP_TOWN_TEST_FILE)
         player_state = PlayerState()
-
-        # Join Player + Map states together so they can communicate nicely.
-        game_state = GameState(player_state=player_state, map_state=map_state)
 
         # Terminal Output Classes
         map_display = MapDisplay(
@@ -116,13 +117,15 @@ if __name__ == "__main__":
             term=term,
             game_screen=game_screen,
             user_input=user_input,
-            game_state=game_state,
+            map_state=map_state,
+            player_state=player_state,
         )
+        game.consumer.start_thread(callback=game.triage)
 
         # GAME STATE AND DISPLAY COMPLETE, INITIALIZING VALUES.
         # (Must come after `Game` init.)
-        game_screen.map_display.display()
-        game_state.player_state.loc = Loc(3, 1)
+        game.game_screen.map_display.display()
+        game.player_state.loc = Loc(3, 1)
 
         # intro_text = game_text.text["introduction"]
         # if isinstance(intro_text, str):
@@ -130,7 +133,6 @@ if __name__ == "__main__":
         # game_screen.description.display_dialogue(text_list=intro_text)
 
         # usr_input = game_screen.input_window.create_user_input()
-
         # Start the Game and wait for the user.
         while True:
             game.user_input.wait_for_key()
