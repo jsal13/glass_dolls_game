@@ -11,7 +11,7 @@ from glassdolls import logger
 from glassdolls.io.game_screen import GameScreen
 from glassdolls.io.input import UserInput
 from glassdolls.pubsub.producer import Producer
-from glassdolls.pubsub.threaded_consumer import ThreadedConsumer
+from glassdolls.pubsub.threaded_consumer import ThreadedConsumer, _log_consumption
 from glassdolls.state.events import Event
 from glassdolls.state.map import MapState
 from glassdolls.state.player import PlayerState
@@ -84,6 +84,13 @@ class Game:
         properties: "pika.BasicProperties",
         body: bytes,
     ) -> None:
+        if method.routing_key is not None:
+            _log_consumption(routing_key=method.routing_key, body=body.decode("utf-8"))
+        else:
+            ValueError(
+                f"No routing key.  {method}, {properties}, {body.decode('utf-8')}"
+            )
+
         data = json.loads(body.decode("utf-8"))
         # Clean.
         if method.routing_key == "user_input.attempt_move":

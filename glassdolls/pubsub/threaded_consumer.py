@@ -1,4 +1,6 @@
 import threading
+import json
+import time
 import uuid
 from datetime import datetime
 from typing import Any, Callable
@@ -60,3 +62,29 @@ class ThreadedConsumer(threading.Thread):
         )
 
         thread.start()
+
+
+def _log_consumption(routing_key: str, body: str) -> None:
+    logger.debug(
+        json.dumps(
+            {
+                "streams": [
+                    {
+                        "stream": {"label": "glassdolls"},
+                        "values": [
+                            [
+                                str(time.time_ns()),
+                                json.dumps(
+                                    {
+                                        "event": "consume-from-queue",
+                                        "routing_key": routing_key,
+                                        "msg": body,
+                                    }
+                                ),
+                            ]
+                        ],
+                    }
+                ]
+            }
+        )
+    )
