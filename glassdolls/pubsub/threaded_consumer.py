@@ -1,14 +1,14 @@
-from typing import Any, Callable
 import threading
-from datetime import datetime
 import uuid
+from datetime import datetime
+from typing import Any, Callable
 
-from attrs import define, field
 import pika
+from attrs import define, field
 
 from glassdolls import logger
-
-from glassdolls.constants import DEFAULT_EXCHANGE, RABBITMQ_CONN_PARAMS, DEFAULT_QUEUE
+from glassdolls.constants import (DEFAULT_EXCHANGE, DEFAULT_QUEUE,
+                                  RABBITMQ_CONN_PARAMS)
 
 
 @define

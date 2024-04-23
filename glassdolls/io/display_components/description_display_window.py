@@ -1,11 +1,11 @@
+import curses
 import textwrap
+
 from attrs import define, field
 
-import curses
-
-from glassdolls.state.events import Event
-from glassdolls.io.display_components.window import Window
 from glassdolls.constants import MAX_SCREEN_WIDTH
+from glassdolls.io.display_components.window import Window
+from glassdolls.state.events import Event
 
 
 @define

@@ -1,13 +1,14 @@
 import json
-from typing import Any, Callable
 import time
 from datetime import datetime
+from typing import Any, Callable
 
-from attrs import define, field
 import pika
+from attrs import define, field
 
 from glassdolls import logger
-from glassdolls.constants import RABBITMQ_CONN_PARAMS, DEFAULT_QUEUE, DEFAULT_EXCHANGE
+from glassdolls.constants import (DEFAULT_EXCHANGE, DEFAULT_QUEUE,
+                                  RABBITMQ_CONN_PARAMS)
 
 
 @define(slots=False)

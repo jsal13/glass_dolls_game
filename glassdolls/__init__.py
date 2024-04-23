@@ -1,6 +1,7 @@
 import logging
-from typing import Any
 from logging.handlers import HTTPHandler
+from typing import Any
+
 import requests
 
 logger = logging.getLogger("glassdoll")

@@ -1,4 +1,5 @@
 import curses
+
 from attrs import define, field
 
 from glassdolls.constants import ASCII_CODES

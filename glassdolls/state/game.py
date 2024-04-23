@@ -1,21 +1,20 @@
 import curses
-from typing import Any
-from datetime import datetime
 import json
+from datetime import datetime
+from typing import Any
 
+import pika
 from attrs import define, field
 from cattrs.preconf.json import make_converter
-import pika
 
 from glassdolls import logger
-from glassdolls.io.input import UserInput
 from glassdolls.io.game_screen import GameScreen
-from glassdolls.state.events import Event
-from glassdolls.state.player import PlayerState
-from glassdolls.state.map import MapState
-
+from glassdolls.io.input import UserInput
 from glassdolls.pubsub.producer import Producer
 from glassdolls.pubsub.threaded_consumer import ThreadedConsumer
+from glassdolls.state.events import Event
+from glassdolls.state.map import MapState
+from glassdolls.state.player import PlayerState
 from glassdolls.utils import Loc
 
 

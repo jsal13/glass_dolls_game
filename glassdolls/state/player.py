@@ -2,9 +2,9 @@ from typing import Any
 
 from attrs import define, field
 
+from glassdolls import logger
 from glassdolls.pubsub.producer import Producer
 from glassdolls.utils import Loc
-from glassdolls import logger
 
 
 @define

@@ -4,9 +4,9 @@ from typing import Any
 from attrs import define, field
 
 from glassdolls.backend.db_clients import MongoDB
+from glassdolls.constants import DEFAULT_QUEUE
 from glassdolls.game_data.factions import Faction
 from glassdolls.pubsub.producer import Producer
-from glassdolls.constants import DEFAULT_QUEUE
 
 
 @define

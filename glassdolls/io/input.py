@@ -1,6 +1,6 @@
 import curses
-from typing import Any
 import sys
+from typing import Any
 
 from attrs import define, field
 

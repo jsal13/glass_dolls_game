@@ -1,4 +1,5 @@
 import curses
+
 from attrs import define, field
 
 from glassdolls.io.display_components.window import Window

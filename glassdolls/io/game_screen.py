@@ -1,22 +1,14 @@
 import curses
+
 from attrs import define, field
 
-from glassdolls.constants import (
-    ASCII_CODES,
-    DESCRIPTION_HEIGHT,
-    HORIZ_PADDING,
-    MAP_HEIGHT,
-    MAP_WIDTH,
-    MAX_SCREEN_WIDTH,
-    TERMINAL_XY_INIT_MAP,
-    VERT_PADDING,
-    COLORS,
-)
 from glassdolls import logger
-
-from glassdolls.io.display_components.description_display_window import (
-    DescriptionDisplay,
-)
+from glassdolls.constants import (ASCII_CODES, COLORS, DESCRIPTION_HEIGHT,
+                                  HORIZ_PADDING, MAP_HEIGHT, MAP_WIDTH,
+                                  MAX_SCREEN_WIDTH, TERMINAL_XY_INIT_MAP,
+                                  VERT_PADDING)
+from glassdolls.io.display_components.description_display_window import \
+    DescriptionDisplay
 from glassdolls.io.display_components.input_window import InputWindow
 from glassdolls.io.display_components.map_window import MapDisplay
 

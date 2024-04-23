@@ -2,9 +2,7 @@ import json
 
 from attrs import define, field
 
-from glassdolls.constants import (
-    DATA_GAME_DIALOGUE,
-)
+from glassdolls.constants import DATA_GAME_DIALOGUE
 
 
 @define

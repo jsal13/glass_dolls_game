@@ -1,6 +1,6 @@
 import os
-from typing import Any
 from functools import lru_cache
+from typing import Any
 
 import requests
 from flask import Flask, render_template, request

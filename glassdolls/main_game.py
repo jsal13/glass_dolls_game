@@ -1,31 +1,22 @@
-import threading
 import curses
+import threading
 
 from glassdolls import logger
-from glassdolls.constants import (
-    DESCRIPTION_HEIGHT,
-    HORIZ_PADDING,
-    MAP_HEIGHT,
-    MAP_TOWN_TEST_FILE,
-    MAP_WIDTH,
-    MAX_SCREEN_WIDTH,
-    TERMINAL_XY_INIT_MAP,
-    USER_INPUT_OPTIONS,
-    VERT_PADDING,
-)
+from glassdolls.constants import (DESCRIPTION_HEIGHT, HORIZ_PADDING,
+                                  MAP_HEIGHT, MAP_TOWN_TEST_FILE, MAP_WIDTH,
+                                  MAX_SCREEN_WIDTH, TERMINAL_XY_INIT_MAP,
+                                  USER_INPUT_OPTIONS, VERT_PADDING)
 from glassdolls.game_data.data_init import Initializer
-from glassdolls.state.game import Game
-from glassdolls.io.input import UserInput
 from glassdolls.game_data.game_text import GameText
-from glassdolls.io.display_components.description_display_window import (
-    DescriptionDisplay,
-)
+from glassdolls.io.display_components.description_display_window import \
+    DescriptionDisplay
 from glassdolls.io.display_components.input_window import InputWindow
 from glassdolls.io.display_components.map_window import MapDisplay
 from glassdolls.io.game_screen import GameScreen
-
+from glassdolls.io.input import UserInput
 from glassdolls.io.utils import get_color_map
 from glassdolls.state.events import Event, Events
+from glassdolls.state.game import Game
 from glassdolls.state.map import MapState
 from glassdolls.state.player import PlayerState
 from glassdolls.utils import Loc

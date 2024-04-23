@@ -5,9 +5,9 @@ from attrs import define, field
 from glassdolls import logger
 from glassdolls._types import MapTiles
 from glassdolls.constants import MAP_LEGEND_JSON, MAP_TOWN_TEST_FILE
+from glassdolls.pubsub.producer import Producer
 from glassdolls.state.events import Events
 from glassdolls.utils import Loc
-from glassdolls.pubsub.producer import Producer
 
 
 @define
