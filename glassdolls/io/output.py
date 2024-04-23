@@ -21,8 +21,6 @@ from glassdolls.constants import (
     VERT_PADDING,
 )
 from glassdolls.state.maps import MapState
-from glassdolls.state.signals import SignalSender
-from glassdolls.pubsub.threaded_consumer import ThreadedConsumer
 from glassdolls.utils import Loc
 from glassdolls import logger
 
@@ -126,24 +124,15 @@ class InputWindow(Window):
 
 
 @define
-class MapDisplay(Window, SignalSender):
+class MapDisplay(Window):
     _map_state: MapState = field(repr=False, default=MapState())
     player_loc: Loc = field(default=Loc(0, 0))
     map_color: int = field(default=0)
     player_color: int = field(default=512)
-    threaded_consumer: "ThreadedConsumer" = field(
-        repr=False, default=ThreadedConsumer(thread_name="MapDisplay")
-    )
 
     def __attrs_post_init__(self) -> None:
         self.init_window()
         curses.curs_set(0)
-
-    def start_consumer(self) -> None:
-        # Start consumer run.
-        self.threaded_consumer.bind_queue_run(
-            queue="player", routing_key="input", callback=self.handle_player_loc_changed
-        )
 
     @property
     def map_state(self) -> MapState:
@@ -184,30 +173,11 @@ class MapDisplay(Window, SignalSender):
 
         self.refresh()
 
-    def handle_player_loc_changed(
-        self,
-        ch: "pika.adapters.blocking_connection.BlockingChannel",
-        method: "pika.spec.Basic.Deliver",
-        properties: "pika.BasicProperties",
-        body: bytes,
-    ) -> None:
-        logger.debug(
-            f" [x] {datetime.now().isoformat()} Received [r_key: {method.routing_key}] {json.loads(body.decode('utf-8'))}"
-        )
-        data = json.loads(body.decode("utf-8"))
-
-        if data.get("data") is not None:
-            if (coords := data["data"].get("location")) is not None:
-                previous_loc = deepcopy(self.player_loc)
-                self.player_loc = Loc.from_tuple(coords=coords)
-                self.map_state.update_visible(self.player_loc)
-                self.display()
-            else:
-                raise ValueError(
-                    f"Got {body.decode('utf-8')}, not a dict with key 'location'."
-                )
-        else:
-            raise ValueError("No data associated with this payload.")
+    def handle_player_loc_changed(self, coords: tuple[int, int]) -> None:
+        previous_loc = deepcopy(self.player_loc)
+        self.player_loc = Loc.from_tuple(coords=coords)
+        self.map_state.update_visible(self.player_loc)
+        self.display()
 
 
 @define
@@ -224,7 +194,7 @@ class GameText:
 
 
 @define
-class DescriptionDisplay(Window, SignalSender):
+class DescriptionDisplay(Window):
     _title: str = field(default="")
     _text: str = field(default="")
     title_color: int = field(default=256)
@@ -309,7 +279,7 @@ class DescriptionDisplay(Window, SignalSender):
 
 
 @define
-class GameScreen(SignalSender):
+class GameScreen:
     """Combines the Display elements into a full game screen."""
 
     term: "curses._CursesWindow" = field(repr=False, default=curses.initscr())

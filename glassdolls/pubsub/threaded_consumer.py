@@ -21,6 +21,7 @@ class ThreadedConsumer(threading.Thread):
     channel: "pika.adapters.blocking_connection.BlockingChannel" = field(
         init=False, repr=False
     )
+    queue: str = field(default="game.queue")
     thread_name: str = field(default="")
 
     def __hash__(self) -> int:
@@ -31,32 +32,26 @@ class ThreadedConsumer(threading.Thread):
 
         self.channel = self.connection.channel()
 
-    def _start_consume(
-        self,
-        queue: str,
-        callback: Callable[..., Any],
-    ) -> None:
-        self.channel.basic_consume(
-            queue=queue, on_message_callback=callback, consumer_tag=self.name
-        )
-        self.channel.start_consuming()
-
-    def bind_queue_run(
-        self, queue: str, routing_key: str, callback: Callable[..., Any]
-    ) -> None:
-        self.channel.queue_declare(queue=queue, auto_delete=False)
+    def bind_queue(self, routing_key: str) -> None:
+        self.channel.queue_declare(queue=self.queue, auto_delete=False)
         self.channel.queue_bind(
-            queue=queue, exchange=EXCHANGE_NAME, routing_key=routing_key
+            queue=self.queue, exchange=EXCHANGE_NAME, routing_key=routing_key
         )
 
+    def start_thread(self, callback: Callable[..., Any]) -> None:
         # This messes stuff up, weirdly.
         # self.channel.basic_qos(prefetch_count=THREADS * 10)
 
+        def _start_consume(callback: Callable[..., Any]) -> None:
+            self.channel.basic_consume(
+                queue=self.queue, on_message_callback=callback, consumer_tag=self.name
+            )
+            self.channel.start_consuming()
+
         thread = threading.Thread(
             name=self.name,
-            target=self._start_consume,
+            target=_start_consume,
             kwargs={
-                "queue": queue,
                 "callback": callback,
             },
         )

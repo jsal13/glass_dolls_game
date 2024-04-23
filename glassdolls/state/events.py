@@ -1,6 +1,7 @@
 from enum import Enum, auto
 
 from attrs import define, field
+from cattrs.preconf.json import make_converter
 
 from glassdolls import logger
 from glassdolls.constants import FE_URI
@@ -29,6 +30,10 @@ class Event:
 
     def make_body(self) -> str:
         return f"{self.uri}/puzzle?code={self.code}"
+
+    def as_json(self) -> str:
+        """For use in JSON serialization."""
+        return make_converter().dumps(self)
 
 
 @define

@@ -19,6 +19,7 @@ class Producer:
     channel: "pika.adapters.blocking_connection.BlockingChannel" = field(
         init=False, repr=False
     )
+    queue: str = field(default="game.queue")
 
     def __attrs_post_init__(self) -> None:
         self.channel = self.connection.channel()
@@ -27,11 +28,11 @@ class Producer:
             exchange_type=pika.exchange_type.ExchangeType("topic"),
         )
 
-    def bind_queue(self, queue: str, routing_key: str) -> None:
+    def bind_queue(self, routing_key: str) -> None:
         # Create and bind the queue.
-        self.channel.queue_declare(queue=queue)
+        self.channel.queue_declare(queue=self.queue)
         self.channel.queue_bind(
-            exchange=self.exchange, queue=queue, routing_key=routing_key
+            exchange=self.exchange, queue=self.queue, routing_key=routing_key
         )
 
     def send_to_queue(self, routing_key: str, body: dict[str, Any]) -> None:

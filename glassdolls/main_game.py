@@ -25,7 +25,6 @@ from glassdolls.io.output import (
 )
 from glassdolls.io.utils import get_color_map
 from glassdolls.state.events import Event, Events
-from glassdolls.state.game import GameState
 from glassdolls.state.maps import MapState
 from glassdolls.state.player import PlayerState
 from glassdolls.utils import Loc
@@ -60,9 +59,6 @@ if __name__ == "__main__":
         map_state = MapState(events=events, map_file=MAP_TOWN_TEST_FILE)
         player_state = PlayerState()
 
-        # Join Player + Map states together so they can communicate nicely.
-        game_state = GameState(player_state=player_state, map_state=map_state)
-
         # Terminal Output Classes
         map_display = MapDisplay(
             loc_start=TERMINAL_XY_INIT_MAP,
@@ -74,7 +70,6 @@ if __name__ == "__main__":
             map_color=color_map[DUNGEON_WALL_COLOR],
             player_color=color_map[PLAYER_COLOR],
         )
-        map_display.start_consumer()
 
         options = DescriptionDisplay(
             loc_start=TERMINAL_XY_INIT_MAP + Loc(MAP_WIDTH + (2 * HORIZ_PADDING), 0),
@@ -130,13 +125,15 @@ if __name__ == "__main__":
             term=term,
             game_screen=game_screen,
             user_input=user_input,
-            game_state=game_state,
+            map_state=map_state,
+            player_state=player_state,
         )
+        game.consumer.start_thread(callback=game.triage)
 
         # GAME STATE AND DISPLAY COMPLETE, INITIALIZING VALUES.
         # (Must come after `Game` init.)
-        game_screen.map_display.display()
-        game_state.player_state.loc = Loc(3, 1)
+        game.game_screen.map_display.display()
+        game.player_state.loc = Loc(3, 1)
 
         # intro_text = game_text.text["introduction"]
         # if isinstance(intro_text, str):

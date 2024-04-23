@@ -33,11 +33,9 @@ class Initializer:
     def _create_queues_for_pubsub(self) -> None:
         try:
             # Delete and re-init the queues.
-            self.producer.channel.queue_delete(queue="player")
+            self.producer.channel.queue_delete(queue="game.queue")
         except ValueError as e:
             pass
-
-        self.producer.bind_queue(queue="player", routing_key="input")
 
     # def _create_puzzles(self) -> tuple[Any, Any, Any]:
     #     # TODO: Make this nicer.
